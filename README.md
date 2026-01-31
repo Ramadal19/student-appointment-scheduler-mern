@@ -7,7 +7,7 @@ This repository is shared between:
 
 ## Legacy System
 The legacy system is maintained separately (Java Swing Student Registry System):
-PASTE LEGACY REPO LINK HERE
+https://github.com/Ramadal19/student-registry-java-swing
 
 ## Architecture (n-tier)
 - Frontend: React
