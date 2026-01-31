@@ -1,0 +1,9 @@
+{
+  "name": "MERN Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "forwardPorts": [3000, 5000],
+  "postCreateCommand": "echo 'Devcontainer ready'"
+}
