@@ -15,7 +15,7 @@ https://github.com/Ramadal19/student-registry-java-swing
 - Database: MongoDB
 
 ## Authentication
-- GitHub Passport (OAuth with GitHub)
+- GitHub Passport (Auth with GitHub)
 
 ## GitHub Codespaces
 Due to administrative restrictions on Amazon corporate-managed devices, the team cannot launch GitHub Codespaces locally.
