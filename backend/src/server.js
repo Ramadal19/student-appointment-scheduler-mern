@@ -19,6 +19,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+//Backend routes SUBDOMAIN: /api
+app.get("/", (req, res) => {
+  res.send("Student Appointment Scheduling API is running");
+});
+
 // Health check
 app.get("/health", (req, res) => {
   res.send("API Running");

@@ -4,19 +4,36 @@ require("dotenv").config();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// -------------------- CORS --------------------
+// permite localhost y tu frontend en Vercel
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://student-appointment-scheduler-mern.vercel.app",
+    ],
+    credentials: true,
+  })
+);
+
+// -------------------- Middleware --------------------
 app.use(express.json());
 
-// Test route
+// -------------------- Routes --------------------
+
+// Root test
 app.get("/", (req, res) => {
   res.status(200).send("Backend server is running successfully 🚀");
 });
 
-// Set port
+// Health check (IMPORTANTE para probar en Render)
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true, message: "API running" });
+});
+
+// -------------------- Server --------------------
 const PORT = process.env.PORT || 5000;
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
