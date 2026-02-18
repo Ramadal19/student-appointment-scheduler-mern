@@ -1,41 +1,40 @@
 const express = require("express");
-const dotenv = require("dotenv");
 const cors = require("cors");
-
-const connectDB = require("./config/db");
-
-// Routes
-const seedRoutes = require("./routes/seed");
-const advisorsRoutes = require("./routes/advisors");
-const availabilityRoutes = require("./routes/availability");
-const appointmentsRoutes = require("./routes/appointments");
-
-dotenv.config();
-connectDB();
+require("dotenv").config();
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+// -------------------- CORS --------------------
+// permite localhost y tu frontend en Vercel
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://student-appointment-scheduler-mern.vercel.app",
+    ],
+    credentials: true,
+  })
+);
+
+// -------------------- Middleware --------------------
 app.use(express.json());
 
-//Backend routes SUBDOMAIN: /api
+// -------------------- Routes --------------------
+
+// Root test
 app.get("/", (req, res) => {
-  res.send("Student Appointment Scheduling API is running");
+  res.status(200).send("Backend server is running successfully 🚀");
 });
 
-// Health check
-app.get("/health", (req, res) => {
-  res.send("API Running");
+// Health check (IMPORTANTE para probar en Render)
+app.get("/api/health", (req, res) => {
+  res.json({ ok: true, message: "API running" });
 });
 
-// API routes
-app.use("/advisors", advisorsRoutes);
-app.use("/availability", availabilityRoutes);
-app.use("/appointments", appointmentsRoutes);
 
-// (temporary) seed routes
-app.use("/seed", seedRoutes);
-
+// -------------------- Server --------------------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`✅ NEW SERVER FILE ACTIVE on port ${PORT}`);
+});
