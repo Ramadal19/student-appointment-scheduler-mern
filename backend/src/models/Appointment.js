@@ -19,6 +19,12 @@ const appointmentSchema = new mongoose.Schema(
       ref: "Topic",
       required: true,
     },
+    availabilityId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Availability",
+      required: true,
+      unique: true
+    },
     startTime: { type: Date, required: true, index: true },
     endTime: { type: Date, required: true },
     status: {

@@ -8,6 +8,7 @@ const connectDB = require("./config/db");
 const seedRoutes = require("./routes/seed");
 const advisorsRoutes = require("./routes/advisors");
 const availabilityRoutes = require("./routes/availability");
+const appointmentsRoutes = require("./routes/appointments");
 
 dotenv.config();
 connectDB();
@@ -26,6 +27,7 @@ app.get("/health", (req, res) => {
 // API routes
 app.use("/advisors", advisorsRoutes);
 app.use("/availability", availabilityRoutes);
+app.use("/appointments", appointmentsRoutes);
 
 // (temporary) seed routes
 app.use("/seed", seedRoutes);
