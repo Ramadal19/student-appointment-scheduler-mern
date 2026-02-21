@@ -64,17 +64,6 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, message: "API running" });
 });
 
-// Session check (para el Dashboard)
-app.get("/auth/me", (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ loggedIn: false });
-  }
-
-  res.json({
-    loggedIn: true,
-    user: req.user.displayName || req.user.username || "user",
-  });
-});
 
 // -------------------- Server --------------------
 const PORT = process.env.PORT || 5000;

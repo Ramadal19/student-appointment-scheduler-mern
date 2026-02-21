@@ -17,10 +17,24 @@ export default function Dashboard() {
       .catch(() => setStatus("❌ Not logged in"));
   }, [API_BASE]);
 
+  // 🔐 Logout
+  const logout = async () => {
+    await fetch(`${API_BASE}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    setStatus("❌ Not logged in");
+  };
+
   return (
     <div style={{ padding: 40 }}>
       <h1>Dashboard</h1>
       <p>{status}</p>
+
+      <button onClick={logout} style={{ marginTop: 20 }}>
+        Logout
+      </button>
     </div>
   );
 }
