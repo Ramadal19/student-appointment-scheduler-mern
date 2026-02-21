@@ -21,6 +21,9 @@ app.use(express.json());
 
 // -------------------- Routes --------------------
 
+const authRoutes = require("./routes/auth");
+app.use("/auth", authRoutes);
+
 // Root test
 app.get("/", (req, res) => {
   res.status(200).send("Backend server is running successfully 🚀");
@@ -34,6 +37,7 @@ app.get("/api/health", (req, res) => {
 
 // -------------------- Server --------------------
 const PORT = process.env.PORT || 5000;
+
 
 app.listen(PORT, () => {
   console.log(`✅ NEW SERVER FILE ACTIVE on port ${PORT}`);
