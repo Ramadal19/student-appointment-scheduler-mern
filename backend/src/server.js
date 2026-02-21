@@ -53,6 +53,16 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, message: "API running" });
 });
 
+app.get("/auth/me", (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ loggedIn: false });
+  }
+
+  res.json({
+    loggedIn: true,
+    user: req.user.displayName || req.user.username,
+  });
+});
 
 // -------------------- Server --------------------
 const PORT = process.env.PORT || 5000;
