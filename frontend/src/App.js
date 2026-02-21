@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import Login from "./pages/Login";
+import "./styles/auth.css";
 
-function App() {
+function Home() {
   const [message, setMessage] = useState("");
 
-  // URL dinámica: local o producción
   const API_BASE =
     process.env.REACT_APP_API_URL || "http://localhost:5000";
 
@@ -18,9 +20,21 @@ function App() {
     <div style={{ textAlign: "center", marginTop: "50px" }}>
       <h1>Student Appointment Scheduler</h1>
       <p>{message}</p>
+
+      <div style={{ marginTop: 20 }}>
+        <Link to="/login">Go to Login</Link>
+      </div>
     </div>
   );
 }
 
-export default App;
-
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
