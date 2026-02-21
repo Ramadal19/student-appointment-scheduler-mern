@@ -7,7 +7,6 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-
     "seed:advisors": "node scripts/seedAdvisors.js",
     "seed:availability": "node scripts/seedAvailability.js",
     "seed:student": "node scripts/seedStudent.js",
@@ -28,7 +27,10 @@
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^4.19.2",
-    "mongoose": "^8.5.1"
+    "express-session": "^1.19.0",
+    "mongoose": "^8.5.1",
+    "passport": "^0.7.0",
+    "passport-github2": "^0.1.12"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

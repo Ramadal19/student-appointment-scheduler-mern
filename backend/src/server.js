@@ -15,10 +15,29 @@ app.use(
     credentials: true,
   })
 );
+const session = require("express-session");
+const passport = require("passport");
+require("./config/passport"); // ✅ registra la strategy
+
 
 // -------------------- Middleware --------------------
 app.use(express.json());
+app.set("trust proxy", 1);
 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "dev_secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // Render = true
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    },
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 // -------------------- Routes --------------------
 
 const authRoutes = require("./routes/auth");
