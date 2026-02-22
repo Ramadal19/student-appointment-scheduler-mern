@@ -101,7 +101,7 @@
   align-items: center;
   display: flex;
   justify-content: center;
-  transform: translateY(10vh);  /* 👈 clave */   /* 👈 lo centra verticalmente */
+  transform: translateY(14vh);  /* 👈 clave */   /* 👈 lo centra verticalmente */
 
   padding: 0 20px;       /* quitamos padding-top fijo */
 
