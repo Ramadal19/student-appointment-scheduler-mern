@@ -1,4 +1,4 @@
-// server.js
+// src/server.js
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -6,19 +6,19 @@ require("dotenv").config();
 
 const session = require("express-session");
 const passport = require("passport");
-require("./config/passport"); // registra strategy + serialize/deserialize (debe existir)
+require("./config/passport"); // strategy + serialize/deserialize
 
 const authRoutes = require("./routes/auth");
 
 const app = express();
 
 // -------------------- CORS --------------------
+const FRONTEND =
+  process.env.FRONTEND_URL || "https://student-appointment-scheduler-mern.vercel.app";
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "https://student-appointment-scheduler-mern.vercel.app",
-    ],
+    origin: ["http://localhost:3000", FRONTEND],
     credentials: true,
   })
 );
@@ -27,29 +27,27 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Render / proxies (NECESARIO para secure cookies detrás de proxy)
+// Render proxy (para secure cookies)
 app.set("trust proxy", 1);
 
 // -------------------- MongoDB --------------------
-async function connectMongo() {
-  const uri = process.env.MONGO_URI;
-  if (!uri) {
-    console.warn("⚠️ MONGO_URI no está definido. El server correrá SIN DB.");
-    return;
-  }
+mongoose.set("bufferCommands", false);
 
+(async function connectMongo() {
   try {
-    await mongoose.connect(uri);
+    if (!process.env.MONGO_URI) {
+      console.warn("⚠️ MONGO_URI no está definido. (Necesario para auth/DB)");
+      return;
+    }
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB connected");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err);
-    // En producción, mejor fallar rápido para que Render reinicie
     process.exit(1);
   }
-}
-connectMongo();
+})();
 
-// -------------------- Session (cookie cross-site) --------------------
+// -------------------- Session --------------------
 app.use(
   session({
     name: "sid",
@@ -60,9 +58,9 @@ app.use(
     rolling: true,
     cookie: {
       httpOnly: true,
-      secure: true,       // HTTPS (Render)
-      sameSite: "none",   // Cross-site (Vercel -> Render)
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 días
+      secure: true, // Render HTTPS
+      sameSite: "none", // Vercel -> Render (cross-site)
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
 );
@@ -74,26 +72,21 @@ app.use(passport.session());
 // -------------------- Routes --------------------
 app.use("/auth", authRoutes);
 
-// Root test
-app.get("/", (req, res) => {
-  res.status(200).send("Backend server is running successfully 🚀");
-});
+app.get("/", (req, res) => res.status(200).send("Backend server is running 🚀"));
 
-// Health check (IMPORTANTE para Render)
-app.get("/api/health", (req, res) => {
-  res.json({ ok: true, message: "API running" });
-});
+app.get("/api/health", (req, res) =>
+  res.json({ ok: true, message: "API running" })
+);
 
-// -------------------- 404 handler --------------------
+// -------------------- 404 --------------------
 app.use((req, res) => {
   res.status(404).json({ ok: false, message: "Route not found" });
 });
 
-// -------------------- Error handler (JSON, NO HTML) --------------------
+// -------------------- Error handler (JSON) --------------------
 app.use((err, req, res, next) => {
   console.error("❌ ERROR:", err);
 
-  // ejemplo: errores de Mongo unique index (E11000)
   if (err?.code === 11000) {
     return res.status(409).json({
       ok: false,
@@ -110,6 +103,4 @@ app.use((err, req, res, next) => {
 
 // -------------------- Server --------------------
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
