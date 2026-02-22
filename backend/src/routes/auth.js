@@ -22,26 +22,23 @@ router.get(
   }
 );
 
-// -------------------- Local REGISTER (email/password) --------------------
+// -------------------- Local REGISTER --------------------
 router.post("/register", async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password)
       return res.status(400).json({ message: "email and password are required" });
-    }
-    if (String(password).length < 6) {
-      return res.status(400).json({ message: "password must be at least 6 characters" });
-    }
 
-    const normalizedEmail = String(email).trim().toLowerCase();
+    if (password.length < 6)
+      return res.status(400).json({ message: "password must be at least 6 characters" });
+
+    const normalizedEmail = email.trim().toLowerCase();
 
     const existing = await User.findOne({ email: normalizedEmail });
-    if (existing) {
-      return res.status(409).json({ message: "email already in use" });
-    }
+    if (existing) return res.status(409).json({ message: "email already in use" });
 
-    const passwordHash = await bcrypt.hash(String(password), 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       name: name?.trim() || normalizedEmail.split("@")[0],
@@ -52,11 +49,10 @@ router.post("/register", async (req, res, next) => {
       profileComplete: false,
     });
 
-    // crea sesión (cookie) igual que con GitHub
     req.login(user, (err) => {
       if (err) return next(err);
 
-      return res.status(201).json({
+      res.status(201).json({
         ok: true,
         user: {
           id: user._id,
@@ -67,17 +63,17 @@ router.post("/register", async (req, res, next) => {
       });
     });
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-// -------------------- Me (session check) --------------------
+// -------------------- Me --------------------
 router.get("/me", (req, res) => {
   if (!req.user) return res.status(401).json({ loggedIn: false });
 
   res.json({
     loggedIn: true,
-    user: req.user.name || req.user.displayName || req.user.username || "user",
+    user: req.user.name || "user",
   });
 });
 
@@ -92,46 +88,5 @@ router.post("/logout", (req, res, next) => {
     });
   });
 });
-const bcrypt = require("bcrypt");
-const User = require("../models/User");
 
-// REGISTER local: email + password
-router.post("/register", async (req, res, next) => {
-  try {
-    const { name, email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: "email and password are required" });
-    }
-    if (String(password).length < 6) {
-      return res.status(400).json({ message: "password must be at least 6 characters" });
-    }
-
-    const normalizedEmail = String(email).trim().toLowerCase();
-
-    const existing = await User.findOne({ email: normalizedEmail });
-    if (existing) return res.status(409).json({ message: "email already in use" });
-
-    const passwordHash = await bcrypt.hash(String(password), 10);
-
-    const user = await User.create({
-      name: name?.trim() || normalizedEmail.split("@")[0],
-      email: normalizedEmail,
-      passwordHash,
-      provider: "local",
-      role: "student",
-      profileComplete: false,
-    });
-
-    req.login(user, (err) => {
-      if (err) return next(err);
-      return res.status(201).json({
-        ok: true,
-        user: { id: user._id, name: user.name, email: user.email, provider: user.provider },
-      });
-    });
-  } catch (err) {
-    next(err);
-  }
-});
 module.exports = router;
