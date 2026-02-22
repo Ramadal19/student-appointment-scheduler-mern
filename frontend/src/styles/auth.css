@@ -287,6 +287,27 @@
 .sep{
   opacity: .55;
 }
+/* ✅ Success message (green) */
+.auth-success{
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  color: #14532d;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+/* ✅ Secondary button (light blue) */
+.btn-secondary{
+  background: rgba(31, 92, 255, 0.08);
+  border-color: rgba(31, 92, 255, 0.35);
+  color: var(--primary);
+}
+
+.btn-secondary:hover{
+  background: rgba(31, 92, 255, 0.14);
+}
 
 /* ✅ Responsive: Mobile stack */
 @media (max-width: 900px){

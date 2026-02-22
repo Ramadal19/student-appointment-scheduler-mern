@@ -146,7 +146,7 @@ export default function ResetPassword() {
             </label>
 
             <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? "Updating..." : "Update  Password"}
+              {loading ? "Updating..." : "Update Password"}
             </button>
           </form>
 
