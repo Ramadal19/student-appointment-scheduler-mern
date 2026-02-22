@@ -1,7 +1,14 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Sidebar({ active, setActive, onLogout }) {
-  const items = ["Dashboard", "Schedule", "Settings"]; // Courses removed
+  const navigate = useNavigate();
+
+  const items = [
+    { label: "Dashboard", icon: "🏠", path: "/dashboard-v2" },
+    { label: "Schedule", icon: "🗓️", path: "/schedule" },
+    { label: "Settings", icon: "⚙️", path: "/settings" },
+  ];
 
   return (
     <aside className="sidebar">
@@ -18,16 +25,15 @@ export default function Sidebar({ active, setActive, onLogout }) {
       <ul className="menu">
         {items.map((item) => (
           <li
-            key={item}
-            className={active === item ? "active" : ""}
-            onClick={() => setActive(item)}
+            key={item.label}
+            className={active === item.label ? "active" : ""}
+            onClick={() => {
+              setActive(item.label);
+              navigate(item.path);
+            }}
           >
-            <span className="icon">
-              {item === "Dashboard" && "🏠"}
-              {item === "Schedule" && "🗓️"}
-              {item === "Settings" && "⚙️"}
-            </span>
-            <span className="label">{item}</span>
+            <span className="icon">{item.icon}</span>
+            <span className="label">{item.label}</span>
           </li>
         ))}
       </ul>
@@ -36,11 +42,10 @@ export default function Sidebar({ active, setActive, onLogout }) {
         <div className="avatar">👤</div>
         <div>
           <div className="profileName">Student</div>
-          <div className="profileSub">Local Mode</div>
+          <div className="profileSub">Session Mode</div>
         </div>
       </div>
 
-      {/* Pushes logout to the bottom */}
       <div className="sidebarBottom">
         <div className="logoutRow">
           <button className="logoutBtn" onClick={onLogout}>

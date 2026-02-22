@@ -1,27 +1,41 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+
+const API_BASE =
+  process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 export default function ProtectedRoute({ children }) {
-  const [allowed, setAllowed] = useState(null);
-
-  const API_BASE =
-    process.env.REACT_APP_API_URL || "http://localhost:5000";
+  const [checking, setChecking] = useState(true);
+  const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_BASE}/auth/me`, { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then(() => setAllowed(true))
-      .catch(() => setAllowed(false));
-  }, [API_BASE]);
+    let alive = true;
 
-  if (allowed === null) return <p style={{ padding: 40 }}>Checking session...</p>;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          credentials: "include",
+        });
 
-  if (!allowed) {
-    window.location.href = "/login";
-    return null;
-  }
+        const data = await res.json().catch(() => ({}));
 
-  return children;
+        // ✅ Tu backend parece devolver { loggedIn: true/false }
+        const ok = res.ok && (data.loggedIn === true || data.authenticated === true);
+
+        if (alive) setAllowed(ok);
+      } catch (e) {
+        if (alive) setAllowed(false);
+      } finally {
+        if (alive) setChecking(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (checking) return <div style={{ padding: 24 }}>Checking session...</div>;
+
+  return allowed ? children : <Navigate to="/login" replace />;
 }

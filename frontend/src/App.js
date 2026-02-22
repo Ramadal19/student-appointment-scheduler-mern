@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardV2 from "./pages/DashboardV2";
 
 import "./styles/auth.css";
 
@@ -54,6 +55,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+         {/* ✅ NUEVO: Dashboard V2 */}
+        <Route
+          path="/dashboard-v2"
+          element={
+            <ProtectedRoute>
+              <DashboardV2 />
             </ProtectedRoute>
           }
         />
