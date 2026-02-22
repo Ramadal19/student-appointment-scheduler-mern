@@ -98,10 +98,10 @@
   background: rgba(0, 0, 0, 0.10);
   width: 100%;
   min-height: 100svh;
-
+  align-items: center;
   display: flex;
   justify-content: center;
-  transform: translateY(33vh);  /* 👈 clave */   /* 👈 lo centra verticalmente */
+  transform: translateY(10vh);  /* 👈 clave */   /* 👈 lo centra verticalmente */
 
   padding: 0 20px;       /* quitamos padding-top fijo */
 
