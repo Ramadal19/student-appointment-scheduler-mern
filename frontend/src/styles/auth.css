@@ -22,10 +22,20 @@
   padding: 44px 40px;
   color: white;
   overflow: hidden;
+}
 
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+.brand-image-bottom{
+  position: absolute;
+  bottom: 20px;
+  right: 30px;
+  width: 160px;
+  z-index: 2;
+}
+
+.brand-image-bottom img{
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
 .auth-brand::after{
@@ -331,4 +341,19 @@
     padding: 18px;
     place-items: start center;
   }
+}
+.brand-image-bottom{
+  position: absolute;
+  bottom: 24px;
+  right: 30px;
+  width: 170px;   /* ajusta tamaño aquí */
+  z-index: 2;
+  opacity: 0.95;
+}
+
+.brand-image-bottom img{
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }

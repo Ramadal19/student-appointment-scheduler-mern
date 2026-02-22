@@ -215,6 +215,7 @@ router.post("/reset-password/:token", async (req, res, next) => {
   }
 });
 
+
 // -------------------- Logout --------------------
 router.post("/logout", (req, res, next) => {
   req.logout((err) => {

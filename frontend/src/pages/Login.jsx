@@ -1,5 +1,5 @@
 import { useState } from "react";
-import loginBg from "../assets/login-bg.png";
+import loginImg from "../assets/login-bg.png";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -75,13 +75,7 @@ export default function Login() {
   return (
     <div className="auth-page">
       {/* Left: Institutional brand panel */}
-      <section 
-        className="auth-brand"
-        aria-label="Institutional branding" 
-        style={{ 
-          backgroundImage: `linear-gradient(160deg, rgba(15,42,82,0.92), rgba(10,58,138,0.92)), url(${loginBg})`,
-        }}
-        >
+      <section className="auth-brand" aria-label="Institutional branding">
         <div className="brand-top">
           <div className="brand-logo" aria-hidden="true">
             🎓
@@ -110,6 +104,11 @@ export default function Login() {
 
         <div className="brand-footer">
           <small>© {new Date().getFullYear()} Student Services</small>
+        </div>
+
+        {/* ✅ Imagen pequeña abajo */}
+        <div className="brand-image-bottom">
+          <img src={loginImg} alt="Login visual" />
         </div>
       </section>
 
