@@ -23,10 +23,12 @@ export default function Home() {
     >
       <div className="overlay">
         <div className="content">
-          <h1>Student Appointment Scheduler</h1>
+          <h1>Student Appointment <br />
+           Scheduler</h1>
 
           <p>
-            Book academic advising appointments easily and manage your
+            Book academic advising appointments easily <br />
+            and manage your
             schedule in one place.
           </p>
 
