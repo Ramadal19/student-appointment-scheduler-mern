@@ -44,7 +44,16 @@ app.get("/auth/me", (req, res) => {
 
 // -------------------- Server --------------------
 const PORT = process.env.PORT || 5000;
-
+// Dashboard API route
+app.get("/api/appointments", (req, res) => {
+  res.json([
+    { id: 1, date: "2026-02-21", status: "confirmed" },
+    { id: 2, date: "2026-02-22", status: "pending" },
+    { id: 3, date: "2026-02-23", status: "confirmed" }
+  ]);
+});
+// Start server
 app.listen(PORT, () => {
   console.log(`✅ NEW SERVER FILE ACTIVE on port ${PORT}`);
 });
+
