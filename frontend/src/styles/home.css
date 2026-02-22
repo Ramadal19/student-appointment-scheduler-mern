@@ -85,6 +85,93 @@
 }
 
 /* 📱 Responsive */
+.hero {
+  min-height: 100svh; /* mejor que 100vh */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+}
+
+/* Overlay con padding responsive (sin padding-top fijo) */
+.overlay {
+  background: rgba(0, 0, 0, 0.10);
+  width: 100%;
+  min-height: 100svh;
+
+  display: flex;
+  justify-content: center;
+  transform: translateY(33vh);  /* 👈 clave */   /* 👈 lo centra verticalmente */
+
+  padding: 0 20px;       /* quitamos padding-top fijo */
+
+  text-align: center;
+}
+
+.content {
+  color: white;
+  width: min(700px, 100%);
+}
+
+/* Título fluido: se adapta a resoluciones */
+.content h1 {
+  font-size: clamp(2.2rem, 4.2vw, 3.3rem);
+  margin-bottom: 15px;
+  font-weight: 800;
+  color: #5752e6;
+  line-height: 1.5; /* junta las líneas si usas <br/> */
+}
+
+/* Texto fluido */
+.content p {
+  font-size: clamp(1.0rem, 2.2vw, 1.6rem);
+  margin-bottom: 20px; /* menos espacio para que quede compacto */
+  opacity: 0.95;
+  color: #09008a;
+  max-width: 60ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Botones: quitamos max-width 100px (era el bug) */
+.btn {
+  padding: 14px 32px;
+  min-width: 170px;
+  max-width: 200px;   /* un máximo lógico */
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.primary {
+  background: #6366f1;
+  color: white;
+}
+.primary:hover {
+  background: #4f46e5;
+  transform: translateY(-2px);
+}
+
+.secondary {
+  background: white;
+  color: #4f46e5;
+}
+.secondary:hover {
+  background: #e5e7eb;
+  transform: translateY(-2px);
+}
+
+/* 📱 Responsive */
 @media (max-width: 768px) {
   .buttons {
     flex-direction: column;
