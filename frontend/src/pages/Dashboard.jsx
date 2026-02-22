@@ -24,8 +24,8 @@ export default function Dashboard() {
       credentials: "include",
     });
 
-    setStatus("❌ Not logged in");
-  };
+    window.location.href = "/login";
+};
 
   return (
     <div style={{ padding: 40 }}>
