@@ -120,7 +120,13 @@ router.get("/me", (req, res) => {
 
   res.json({
     loggedIn: true,
-    user: req.user.name || "user",
+    user: {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      provider: req.user.provider,
+      role: req.user.role,
+    },
   });
 });
 
