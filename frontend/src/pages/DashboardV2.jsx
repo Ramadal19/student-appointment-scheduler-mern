@@ -32,7 +32,7 @@ export default function DashboardV2() {
               ? u.email
               : (data.loggedIn ? "Yes" : "Unknown");
 
-        setStatus(`✅ Logged in: ${label}`);
+        setStatus(`✅ Welcome, ${label}`);
       })
       .catch(() => {
         setUser(null);
