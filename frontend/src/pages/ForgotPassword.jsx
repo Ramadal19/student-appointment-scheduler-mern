@@ -7,7 +7,9 @@ export default function ForgotPassword() {
   const [resetUrl, setResetUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API = process.env.REACT_APP_API_URL;
+  // ✅ Backend monta routes como: app.use("/auth", authRoutes)
+  // Por eso el endpoint es: `${API}/auth/forgot-password`
+  const API = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,13 +21,16 @@ export default function ForgotPassword() {
       return;
     }
 
+    const endpoint = `${API}/auth/forgot-password`;
+    console.log("Calling endpoint:", endpoint);
+
     try {
       setLoading(true);
 
-      const res = await fetch(`${API}/auth/forgot-password`, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim() }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -37,7 +42,7 @@ export default function ForgotPassword() {
 
       setMsg(data.message || "If an account exists, a reset link was generated.");
 
-      // Para modo básico (testing): si backend devuelve resetUrl, lo mostramos
+      // ✅ modo básico: si backend devuelve resetUrl, lo mostramos
       if (data.resetUrl) {
         setResetUrl(data.resetUrl);
         console.log("RESET URL:", data.resetUrl);
