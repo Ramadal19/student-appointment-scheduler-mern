@@ -77,16 +77,7 @@ export default function Login() {
       <section className="auth-brand" aria-label="Institutional branding">
         <div className="brand-top">
           <div className="brand-logo" aria-hidden="true">
-            {/* Simple icon */}
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-              <path
-                d="M8 12h8"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-              />
-            </svg>
+            🎓
           </div>
 
           <div>

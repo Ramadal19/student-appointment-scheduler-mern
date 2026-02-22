@@ -78,13 +78,22 @@ router.post("/login", async (req, res, next) => {
     const normalizedEmail = String(email).trim().toLowerCase();
 
     const user = await User.findOne({ email: normalizedEmail });
+
+    // Email no existe (o no es cuenta local)
     if (!user || !user.passwordHash) {
-      return res.status(401).json({ message: "invalid credentials" });
+      return res.status(404).json({
+        message: "No account found for this email. Please create one.",
+        code: "USER_NOT_FOUND",
+      });
     }
 
+    // Email existe pero password incorrecto
     const ok = await bcrypt.compare(String(password), user.passwordHash);
     if (!ok) {
-      return res.status(401).json({ message: "invalid credentials" });
+      return res.status(401).json({
+        message: "Incorrect password. Please try again.",
+        code: "BAD_PASSWORD",
+      });
     }
 
     // crea sesión
