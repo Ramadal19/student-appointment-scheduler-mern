@@ -92,5 +92,46 @@ router.post("/logout", (req, res, next) => {
     });
   });
 });
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
 
+// REGISTER local: email + password
+router.post("/register", async (req, res, next) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "email and password are required" });
+    }
+    if (String(password).length < 6) {
+      return res.status(400).json({ message: "password must be at least 6 characters" });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) return res.status(409).json({ message: "email already in use" });
+
+    const passwordHash = await bcrypt.hash(String(password), 10);
+
+    const user = await User.create({
+      name: name?.trim() || normalizedEmail.split("@")[0],
+      email: normalizedEmail,
+      passwordHash,
+      provider: "local",
+      role: "student",
+      profileComplete: false,
+    });
+
+    req.login(user, (err) => {
+      if (err) return next(err);
+      return res.status(201).json({
+        ok: true,
+        user: { id: user._id, name: user.name, email: user.email, provider: user.provider },
+      });
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 module.exports = router;
