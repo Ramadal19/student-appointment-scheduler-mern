@@ -7,6 +7,9 @@ import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardV2 from "./pages/DashboardV2";
 
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
 import "./styles/auth.css";
 
 function Home() {
