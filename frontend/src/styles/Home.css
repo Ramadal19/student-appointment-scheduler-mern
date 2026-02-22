@@ -1,0 +1,89 @@
+.hero {
+  height: 100vh;
+  background-image: url("/hero-bg.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+/* Overlay oscuro moderno */
+.overlay {
+  background: rgba(0, 0, 0, 0.55);
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.content {
+  color: white;
+  max-width: 700px;
+}
+
+.content h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.content p {
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 28px;
+  border-radius: 30px;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.primary {
+  background: #6366f1;
+  color: white;
+}
+
+.primary:hover {
+  background: #4f46e5;
+}
+
+.secondary {
+  background: white;
+  color: #4f46e5;
+}
+
+.secondary:hover {
+  background: #e5e7eb;
+}
+
+/* 📱 Responsive */
+@media (max-width: 768px) {
+  .content h1 {
+    font-size: 2rem;
+  }
+
+  .content p {
+    font-size: 1rem;
+  }
+
+  .buttons {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}

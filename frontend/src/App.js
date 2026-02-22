@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -12,50 +13,20 @@ import ResetPassword from "./pages/ResetPassword";
 
 import "./styles/auth.css";
 
-function Home() {
-  const [message, setMessage] = useState("");
-
-  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
-
-  useEffect(() => {
-    fetch(`${API_BASE}/api/health`, { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch((err) => console.error("API ERROR:", err));
-  }, [API_BASE]);
-
-  return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1>Student Appointment Scheduler</h1>
-      <p>{message}</p>
-
-      <div
-        style={{
-          marginTop: 20,
-          display: "flex",
-          gap: 16,
-          justifyContent: "center",
-        }}
-      >
-        <Link to="/login">Go to Login</Link>
-        <Link to="/register">Create account</Link>
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Homepage */}
         <Route path="/" element={<Home />} />
 
+        {/* Auth */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-
+        {/* Protected */}
         <Route
           path="/dashboard"
           element={
@@ -65,7 +36,7 @@ export default function App() {
           }
         />
 
-
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
