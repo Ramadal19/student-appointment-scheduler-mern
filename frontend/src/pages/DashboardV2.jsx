@@ -1,18 +1,24 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import "../styles/Dashboard.css";
 
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const API_BASE =
+  process.env.REACT_APP_API_URL ||
+  "https://student-appointment-scheduler-mern.onrender.com";
 
 export default function DashboardV2() {
+  const navigate = useNavigate();
+
   const [active, setActive] = useState("Dashboard");
   const [appointments, setAppointments] = useState([]);
   const [search, setSearch] = useState("");
 
   const [status, setStatus] = useState("Checking session...");
   const [user, setUser] = useState(null);
+  const [sessionOk, setSessionOk] = useState(false); // ✅ nuevo
 
-  // ✅ Verificar sesión + traer usuario
+  // ✅ Verificar sesión + traer usuario (y si no, sacar a login)
   useEffect(() => {
     fetch(`${API_BASE}/auth/me`, { credentials: "include" })
       .then(async (res) => {
@@ -21,32 +27,39 @@ export default function DashboardV2() {
         return data;
       })
       .then((data) => {
-        // Soporta varias formas de respuesta
         const u = data.user || data.currentUser || null;
         setUser(u);
+        setSessionOk(true);
 
         const label =
           u?.name
             ? `${u.name}${u.email ? ` (${u.email})` : ""}`
             : u?.email
-              ? u.email
-              : (data.loggedIn ? "Yes" : "Unknown");
+            ? u.email
+            : data.loggedIn
+            ? "Yes"
+            : "Unknown";
 
         setStatus(`✅ Welcome, ${label}`);
       })
       .catch(() => {
         setUser(null);
+        setSessionOk(false);
         setStatus("❌ Not logged in");
+        // ✅ clave: evita que el usuario vuelva con la flecha atrás
+        navigate("/login", { replace: true });
       });
-  }, []);
+  }, [navigate]);
 
-  // ✅ Cargar appointments
+  // ✅ Cargar appointments SOLO si hay sesión
   useEffect(() => {
+    if (!sessionOk) return;
+
     fetch(`${API_BASE}/api/appointments`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setAppointments(Array.isArray(data) ? data : []))
       .catch(() => setAppointments([]));
-  }, []);
+  }, [sessionOk]);
 
   // 🔍 Filtrado
   const filtered = useMemo(() => {
@@ -69,13 +82,21 @@ export default function DashboardV2() {
     (a) => String(a.status).toLowerCase() === "pending"
   ).length;
 
-  // 🔐 Logout real
+  // 🔐 Logout (con replace)
   const onLogout = async () => {
-    await fetch(`${API_BASE}/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
-    window.location.href = "/login";
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (e) {
+      // aunque falle, igual sacamos al user
+    } finally {
+      setUser(null);
+      setAppointments([]);
+      setSessionOk(false);
+      navigate("/login", { replace: true }); // ✅ clave
+    }
   };
 
   return (
@@ -84,7 +105,6 @@ export default function DashboardV2() {
         active={active}
         setActive={setActive}
         onLogout={onLogout}
-        // ✅ NUEVO: datos reales del usuario
         profileName={user?.name || "Student"}
         profileSub={user?.email || "Session Mode"}
       />
@@ -93,10 +113,7 @@ export default function DashboardV2() {
         <div className="pageCard">
           <h1>Student Appointment Dashboard</h1>
 
-          {/* ✅ Aquí se ve claramente el usuario */}
-          <p className="subtitle">
-            {status}
-          </p>
+          <p className="subtitle">{status}</p>
 
           <div className="searchRow">
             <span className="searchIcon">🔎</span>
@@ -105,6 +122,7 @@ export default function DashboardV2() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search..."
+              disabled={!sessionOk}
             />
           </div>
 
