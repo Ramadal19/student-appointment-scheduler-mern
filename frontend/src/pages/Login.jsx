@@ -78,14 +78,10 @@ export default function Login() {
         <div className="brand-top">
           <div className="brand-logo" aria-hidden="true">
             {/* Simple icon */}
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
               <path
-                d="M4 5.5C4 4.12 5.12 3 6.5 3H19v16.5c0 0.83-0.67 1.5-1.5 1.5H6.5C5.12 21 4 19.88 4 18.5V5.5Z"
-                stroke="currentColor"
-                strokeWidth="1.8"
-              />
-              <path
-                d="M8 7h7M8 10h7M8 13h5"
+                d="M8 12h8"
                 stroke="currentColor"
                 strokeWidth="1.8"
                 strokeLinecap="round"
