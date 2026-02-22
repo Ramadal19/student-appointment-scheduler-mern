@@ -14,7 +14,7 @@ export default function Login() {
   // ✅ Cambia esto según tu env (local / prod)
   const API_BASE =
     process.env.REACT_APP_API_URL ||
-    "http://localhost:5000";
+    "https://student-appointment-scheduler-mern.onrender.com";
     
     useEffect(() => {
         console.log("TEST: calling", `${API_BASE}/api/health`);
