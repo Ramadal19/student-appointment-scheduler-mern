@@ -66,7 +66,45 @@ router.post("/register", async (req, res, next) => {
     next(err);
   }
 });
+// -------------------- Local LOGIN (email/password) --------------------
+router.post("/login", async (req, res, next) => {
+  try {
+    const { email, password } = req.body || {};
 
+    if (!email || !password) {
+      return res.status(400).json({ message: "email and password are required" });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user || !user.passwordHash) {
+      return res.status(401).json({ message: "invalid credentials" });
+    }
+
+    const ok = await bcrypt.compare(String(password), user.passwordHash);
+    if (!ok) {
+      return res.status(401).json({ message: "invalid credentials" });
+    }
+
+    // crea sesión
+    req.login(user, (err) => {
+      if (err) return next(err);
+
+      return res.json({
+        ok: true,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          provider: user.provider,
+        },
+      });
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 // -------------------- Me --------------------
 router.get("/me", (req, res) => {
   if (!req.user) return res.status(401).json({ loggedIn: false });
