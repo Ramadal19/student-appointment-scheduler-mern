@@ -1,49 +1,53 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function ResetPassword() {
-  const { token } = useParams();
-  const navigate = useNavigate();
-
   const [password, setPassword] = useState("");
-  const [msg, setMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(null);
 
-  const API = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
+  const API_BASE =
+    process.env.REACT_APP_API_URL ||
+    "https://student-appointment-scheduler-mern.onrender.com";
+
+  // token viene del URL: /reset-password/:token
+  const token = window.location.pathname.split("/reset-password/")[1] || "";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     setMsg("");
 
-    if (password.length < 6) {
-      setMsg("Password must be at least 6 characters.");
-      return;
-    }
+    if (!password.trim()) return setError("Please enter a new password.");
+    if (password.length < 6) return setError("Password must be at least 6 characters.");
+
+    if (!token) return setError("Missing reset token.");
 
     try {
       setLoading(true);
 
-      const res = await fetch(`${API}/auth/reset-password/${token}`, {
+      const res = await fetch(`${API_BASE}/auth/reset-password/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ password }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setMsg(data.message || "Reset failed.");
+        setError(data?.message || "Reset failed.");
         return;
       }
 
-      // ✅ Éxito con mensaje claro
       setMsg("Password updated successfully! Redirecting to Login...");
-      setCountdown(5); // ⏳ ahora 5 segundos
+      setCountdown(7); // ✅ más tiempo (7 segundos)
 
     } catch (err) {
-      console.error(err);
-      setMsg("Network error.");
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -51,54 +55,114 @@ export default function ResetPassword() {
 
   useEffect(() => {
     if (countdown === null) return;
-
     if (countdown === 0) {
-      navigate("/login");
+      window.location.href = "/login";
       return;
     }
-
-    const timer = setTimeout(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [countdown, navigate]);
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto", padding: 16 }}>
-      <h2>Reset Password</h2>
-      <p>Enter a new password for your account.</p>
+    <div className="auth-page">
+      {/* Left panel */}
+      <section className="auth-brand" aria-label="Institutional branding">
+        <div className="brand-top">
+          <div className="brand-logo" aria-hidden="true">
+            🎓
+          </div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="password"
-          placeholder="New password (min 6 chars)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ width: "100%", padding: 10, marginBottom: 10 }}
-        />
+          <div>
+            <h1 className="brand-title">Student Appointment Scheduling System</h1>
+            <p className="brand-subtitle">Academic Advising Portal</p>
+          </div>
+        </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ width: "100%", padding: 10, cursor: "pointer" }}
-        >
-          {loading ? "Updating..." : "Update Password"}
-        </button>
-      </form>
+        <ul className="brand-points">
+          <li>
+            <span className="dot" aria-hidden="true" />
+            Create your student account
+          </li>
+          <li>
+            <span className="dot" aria-hidden="true" />
+            Book advising sessions
+          </li>
+          <li>
+            <span className="dot" aria-hidden="true" />
+            Manage upcoming appointments
+          </li>
+        </ul>
 
-      {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
+        <div className="brand-footer">
+          <small>© {new Date().getFullYear()} Student Services</small>
+        </div>
+      </section>
 
-      {countdown !== null && (
-        <p style={{ marginTop: 8 }}>
-          Redirecting to Login in {countdown}...
-        </p>
-      )}
+      {/* Right card */}
+      <main className="auth-main">
+        <div className="auth-card" role="region" aria-label="Reset password form">
+          <header className="auth-header">
+            <h2>Reset Password</h2>
+            <p>Enter a new password for your account.</p>
+          </header>
 
-      <p style={{ marginTop: 16 }}>
-        <Link to="/login">Back to Login</Link>
-      </p>
+          {error ? (
+            <div className="auth-alert" role="alert">
+              {error}
+            </div>
+          ) : null}
+
+          {msg ? (
+            <div className="auth-success" role="status">
+              {msg}
+              {countdown !== null ? (
+                <div style={{ marginTop: 6, opacity: 0.8 }}>
+                  Redirecting to Login in {countdown}...
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <label className="field">
+              <span>New Password</span>
+              <div className="password-wrap">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() => setShowPassword((v) => !v)}
+                  disabled={loading}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </label>
+
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? "Updating..." : "Update Password"}
+            </button>
+          </form>
+
+          <p className="auth-bottom">
+            Back to <a className="link" href="/login">Login</a>
+          </p>
+
+          <footer className="auth-legal">
+            <a className="link" href="/support">Contact support</a>
+            <span className="sep">•</span>
+            <a className="link" href="/privacy">Privacy</a>
+            <span className="sep">•</span>
+            <a className="link" href="/terms">Terms</a>
+          </footer>
+        </div>
+      </main>
     </div>
   );
 }
