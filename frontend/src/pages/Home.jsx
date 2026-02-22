@@ -19,7 +19,8 @@ export default function Home() {
           </h1>
 
           <p>
-            Book academic advising appointments easily and manage your
+            Book academic advising appointments easily <br />
+            and manage your
             schedule in one place.
           </p>
 
