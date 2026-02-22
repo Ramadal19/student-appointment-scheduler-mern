@@ -58,9 +58,20 @@ export default function Login() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.message || "Invalid email or password.");
-      }
+  const data = await res.json().catch(() => ({}));
+
+  // Si el backend ya manda codes, los usamos
+  if (data?.code === "USER_NOT_FOUND" || res.status === 404) {
+    throw new Error("No account found for this email. Please create one..");
+  }
+
+  if (data?.code === "BAD_PASSWORD" || res.status === 401) {
+    throw new Error("Incorrect password. Please try again");
+  }
+
+  // fallback: muestra lo que venga del backend
+  throw new Error(data?.message || "Login failed.");
+}
 
       // ✅ Si el login fue ok, mandas al dashboard
       window.location.href = "/dashboard";
