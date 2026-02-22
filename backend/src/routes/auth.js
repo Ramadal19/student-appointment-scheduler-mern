@@ -164,7 +164,6 @@ router.post("/forgot-password", async (req, res, next) => {
 
     return res.json({
       ok: true,
-      message: "Reset link generated (testing mode).",
       resetUrl,
     });
   } catch (err) {
