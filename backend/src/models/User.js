@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, trim: true }, // ← ya NO required
+    name: { type: String, trim: true },
 
     email: {
       type: String,
@@ -30,11 +30,14 @@ const userSchema = new mongoose.Schema(
     },
 
     profileComplete: { type: Boolean, default: false },
+
+    // ✅ NUEVOS CAMPOS PARA RESET PASSWORD
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
   },
   { timestamps: true }
 );
 
-// índices únicos solo si existe el campo
 userSchema.index({ email: 1 }, { unique: true, sparse: true });
 userSchema.index({ githubId: 1 }, { unique: true, sparse: true });
 

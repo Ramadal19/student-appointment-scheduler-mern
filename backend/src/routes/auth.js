@@ -1,7 +1,9 @@
 const express = require("express");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const User = require("../models/User");
+
 
 const router = express.Router();
 
@@ -128,6 +130,90 @@ router.get("/me", (req, res) => {
       role: req.user.role,
     },
   });
+});
+// -------------------- Forgot Password (BASIC) --------------------
+// POST /auth/forgot-password
+router.post("/forgot-password", async (req, res, next) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ message: "email is required" });
+    }
+
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    // Si no existe, tu mensaje friendly
+    if (!user) {
+      return res.status(404).json({
+        message: "No account registered. Please create one.",
+        code: "USER_NOT_FOUND",
+      });
+    }
+
+    // Genera token y expiración
+    const token = crypto.randomBytes(32).toString("hex");
+
+    // ✅ IMPORTANTE: estos campos deben existir en tu User model (abajo te digo)
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hora
+    await user.save();
+
+    // Modo básico: devolvemos link para pruebas (en prod sería email)
+    const resetUrl = `${FRONTEND.replace(/\/$/, "")}/reset-password/${token}`;
+
+    return res.json({
+      ok: true,
+      message: "Reset link generated (testing mode).",
+      resetUrl,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// -------------------- Reset Password (BASIC) --------------------
+// POST /auth/reset-password/:token
+router.post("/reset-password/:token", async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body || {};
+
+    if (!password) {
+      return res.status(400).json({ message: "password is required" });
+    }
+
+    if (String(password).length < 6) {
+      return res.status(400).json({
+        message: "password must be at least 6 characters",
+      });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Token invalid or expired",
+        code: "BAD_TOKEN",
+      });
+    }
+
+    // ✅ Tu sistema usa passwordHash (no password)
+    user.passwordHash = await bcrypt.hash(String(password), 10);
+
+    // limpia token
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+
+    return res.json({ ok: true, message: "Password updated successfully" });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // -------------------- Logout --------------------
