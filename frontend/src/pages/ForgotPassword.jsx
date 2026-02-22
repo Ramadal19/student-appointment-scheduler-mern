@@ -83,13 +83,23 @@ export default function ForgotPassword() {
 
       {/* Solo para pruebas en modo básico */}
       {resetUrl && (
-        <div style={{ marginTop: 12 }}>
-          <p style={{ marginBottom: 6 }}>
-            <strong>Testing reset link:</strong>
-          </p>
-          <a href={resetUrl}>{resetUrl}</a>
-        </div>
-      )}
+  <div style={{ marginTop: 12 }}>
+    <p><strong>Reset link generated.</strong></p>
+    <button
+      onClick={() => window.location.href = resetUrl}
+      style={{
+        padding: "10px 15px",
+        backgroundColor: "#007bff",
+        color: "white",
+        border: "none",
+        borderRadius: "4px",
+        cursor: "pointer"
+      }}
+    >
+      Reset Password Now
+    </button>
+  </div>
+)}
 
       <p style={{ marginTop: 16 }}>
         <Link to="/login">Back to Login</Link>
