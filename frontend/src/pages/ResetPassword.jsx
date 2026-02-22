@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
 export default function ResetPassword() {
@@ -8,24 +8,14 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(null);
 
-  const API = process.env.REACT_APP_API_URL;
+  const API = (process.env.REACT_APP_API_URL || "").replace(/\/$/, "");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMsg("");
 
-    if (!API) {
-      setMsg("Missing REACT_APP_API_URL in frontend environment variables.");
-      return;
-    }
-
-    if (!token) {
-      setMsg("Missing reset token in URL.");
-      return;
-    }
-
-    // Ya dijiste que tienes esta validación, igual la dejo aquí también:
     if (password.length < 6) {
       setMsg("Password must be at least 6 characters.");
       return;
@@ -40,24 +30,39 @@ export default function ResetPassword() {
         body: JSON.stringify({ password }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await res.json();
 
       if (!res.ok) {
         setMsg(data.message || "Reset failed.");
         return;
       }
 
-      setMsg(data.message || "Password updated successfully!");
+      // ✅ Éxito con mensaje claro
+      setMsg("Password updated successfully! Redirecting to Login...");
+      setCountdown(5); // ⏳ ahora 5 segundos
 
-      // Redirige al login
-      setTimeout(() => navigate("/login"), 900);
     } catch (err) {
-      console.error("RESET PASSWORD ERROR:", err);
-      setMsg("Network error. Please try again.");
+      console.error(err);
+      setMsg("Network error.");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (countdown === null) return;
+
+    if (countdown === 0) {
+      navigate("/login");
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [countdown, navigate]);
 
   return (
     <div style={{ maxWidth: 420, margin: "40px auto", padding: 16 }}>
@@ -84,6 +89,12 @@ export default function ResetPassword() {
       </form>
 
       {msg && <p style={{ marginTop: 12 }}>{msg}</p>}
+
+      {countdown !== null && (
+        <p style={{ marginTop: 8 }}>
+          Redirecting to Login in {countdown}...
+        </p>
+      )}
 
       <p style={{ marginTop: 16 }}>
         <Link to="/login">Back to Login</Link>
