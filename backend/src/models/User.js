@@ -2,24 +2,20 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, trim: true, required: true },
+    name: { type: String, trim: true }, // ← ya NO required
 
     email: {
       type: String,
       trim: true,
       lowercase: true,
-      // Para advisors manuales puedes poner email también (recomendado),
-      // pero lo dejamos como opcional para que puedas crear advisors sin email si quieres.
     },
 
-    // Para login local (students)
+    // Login local (students)
     passwordHash: { type: String },
 
-    // Para GitHub OAuth (students)
-    githubId: { type: String, },
+    // GitHub OAuth (students)
+    githubId: { type: String },
 
-    // Cómo se autentica (o no se autentica)
-    // advisor = creado manualmente, no inicia sesión
     provider: {
       type: String,
       enum: ["local", "github", "manual"],
@@ -38,7 +34,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Índices: email único solo si existe (sparse)
+// índices únicos solo si existe el campo
 userSchema.index({ email: 1 }, { unique: true, sparse: true });
 userSchema.index({ githubId: 1 }, { unique: true, sparse: true });
 
