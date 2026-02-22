@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -11,7 +11,6 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [loadingEmail, setLoadingEmail] = useState(false);
-  const [loadingGitHub, setLoadingGitHub] = useState(false);
   const [error, setError] = useState("");
 
   // ✅ Cambia esto según tu env (local / prod)
@@ -19,60 +18,45 @@ export default function Register() {
     process.env.REACT_APP_API_URL ||
     "https://student-appointment-scheduler-mern.onrender.com";
 
-  const emailOk = useMemo(() => {
-    const v = email.trim();
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-  }, [email]);
-
-  const canSubmit = useMemo(() => {
-    return (
-      name.trim().length >= 2 &&
-      emailOk &&
-      password.trim().length >= 6 &&
-      confirmPassword.trim().length >= 6 &&
-      password === confirmPassword
-    );
-  }, [name, emailOk, password, confirmPassword]);
-
-  const handleGitHub = () => {
-    setError("");
-    setLoadingGitHub(true);
-    window.location.href = `${API_BASE}/auth/github`;
-  };
+  const emailOk = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
   const handleEmailRegister = async (e) => {
     e.preventDefault();
     setError("");
 
+    // ✅ Validación SOLO al enviar (botón siempre activo)
     if (!name.trim()) return setError("Please enter your name.");
+    if (name.trim().length < 2) return setError("Name must be at least 2 characters.");
+
     if (!email.trim()) return setError("Please enter your email.");
-    if (!emailOk) return setError("Please enter a valid email address.");
+    if (!emailOk(email)) return setError("Please enter a valid email address.");
+
     if (!password.trim()) return setError("Please enter a password.");
     if (password.length < 6) return setError("Password must be at least 6 characters.");
+
+    if (!confirmPassword.trim()) return setError("Please confirm your password.");
     if (password !== confirmPassword) return setError("Passwords do not match.");
 
     try {
       setLoadingEmail(true);
 
-      // POST /auth/register { name, email, password }
       const res = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
       });
 
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        // Si backend manda codes, mejor
         if (data?.code === "EMAIL_EXISTS" || res.status === 409) {
           throw new Error("This email is already registered. Try signing in.");
         }
         throw new Error(data?.message || "Registration failed.");
       }
 
-      // ✅ Entra al dashboard o manda a login
+      // ✅ Si registró ok
       window.location.href = "/dashboard";
       // Alternativa:
       // window.location.href = "/login";
@@ -85,7 +69,7 @@ export default function Register() {
 
   return (
     <div className="auth-page">
-      {/* Left: Institutional brand panel (MISMO que Login) */}
+      {/* Left: Institutional brand panel (mismo look que Login) */}
       <section className="auth-brand" aria-label="Institutional branding">
         <div className="brand-top">
           <div className="brand-logo" aria-hidden="true">
@@ -118,7 +102,7 @@ export default function Register() {
         </div>
       </section>
 
-      {/* Right: Register card (MISMO estilo que Login) */}
+      {/* Right: Register card */}
       <main className="auth-main">
         <div className="auth-card" role="region" aria-label="Create account form">
           <header className="auth-header">
@@ -132,18 +116,9 @@ export default function Register() {
             </div>
           ) : null}
 
-          <button
-            type="button"
-            className="btn btn-github"
-            onClick={handleGitHub}
-            disabled={loadingGitHub || loadingEmail}
-          >
-            {loadingGitHub ? "Redirecting to GitHub..." : "Continue with GitHub"}
-          </button>
-
-          <div className="divider" role="separator" aria-label="or divider">
-            <span>or</span>
-          </div>
+          {/* ✅ Quitamos GitHub en Register */}
+          {/* <button className="btn btn-github">...</button>
+              <div className="divider"><span>or</span></div> */}
 
           <form onSubmit={handleEmailRegister} className="auth-form">
             <label className="field">
@@ -154,7 +129,7 @@ export default function Register() {
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                disabled={loadingEmail || loadingGitHub}
+                disabled={loadingEmail}
               />
             </label>
 
@@ -166,7 +141,7 @@ export default function Register() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={loadingEmail || loadingGitHub}
+                disabled={loadingEmail}
               />
             </label>
 
@@ -179,13 +154,13 @@ export default function Register() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={loadingEmail || loadingGitHub}
+                  disabled={loadingEmail}
                 />
                 <button
                   type="button"
                   className="ghost"
                   onClick={() => setShowPassword((v) => !v)}
-                  disabled={loadingEmail || loadingGitHub}
+                  disabled={loadingEmail}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? "Hide" : "Show"}
@@ -202,13 +177,13 @@ export default function Register() {
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={loadingEmail || loadingGitHub}
+                  disabled={loadingEmail}
                 />
                 <button
                   type="button"
                   className="ghost"
                   onClick={() => setShowConfirm((v) => !v)}
-                  disabled={loadingEmail || loadingGitHub}
+                  disabled={loadingEmail}
                   aria-label={showConfirm ? "Hide password" : "Show password"}
                 >
                   {showConfirm ? "Hide" : "Show"}
@@ -216,13 +191,9 @@ export default function Register() {
               </div>
             </label>
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={!canSubmit || loadingEmail || loadingGitHub}
-              title={!canSubmit ? "Complete the form to continue" : ""}
-            >
-              {loadingEmail ? "Creating..." : "Create account with Email"}
+            {/* ✅ Botón siempre activo (solo se desactiva mientras carga) */}
+            <button type="submit" className="btn btn-primary" disabled={loadingEmail}>
+              {loadingEmail ? "Creating..." : "Create account"}
             </button>
           </form>
 
