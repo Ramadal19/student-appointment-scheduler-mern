@@ -15,17 +15,6 @@ export default function Login() {
   const API_BASE =
     process.env.REACT_APP_API_URL ||
     "https://student-appointment-scheduler-mern.onrender.com";
-    
-    useEffect(() => {
-        console.log("TEST: calling", `${API_BASE}/api/health`);
-        fetch(`${API_BASE}/api/health`)
-            .then((res) => {
-                 console.log("TEST: status", res.status);
-                return res.json();
-            })
-            .then((data) => console.log("✅ TEST OK:", data))
-            .catch((err) => console.error("❌ TEST FAIL:", err));
-    }, [API_BASE]);
 
   const handleGitHub = () => {
     setError("");
