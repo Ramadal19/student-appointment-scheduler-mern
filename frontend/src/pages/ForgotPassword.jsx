@@ -119,8 +119,12 @@ export default function ForgotPassword() {
               />
             </label>
 
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? "Sending..." : "Send Reset Link"}
+            <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={loading || !!resetUrl}
+            >
+            {loading ? "Sending..." : "Send Reset Link"}
             </button>
           </form>
 
