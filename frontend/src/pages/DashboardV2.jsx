@@ -2,16 +2,17 @@ import React, { useEffect, useMemo, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import "../styles/Dashboard.css";
 
-const API_BASE =
-  process.env.REACT_APP_API_URL || "http://localhost:5000";
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 export default function DashboardV2() {
   const [active, setActive] = useState("Dashboard");
   const [appointments, setAppointments] = useState([]);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("Checking session...");
 
-  // ✅ Verificar sesión
+  const [status, setStatus] = useState("Checking session...");
+  const [user, setUser] = useState(null);
+
+  // ✅ Verificar sesión + traer usuario
   useEffect(() => {
     fetch(`${API_BASE}/auth/me`, { credentials: "include" })
       .then(async (res) => {
@@ -19,21 +20,31 @@ export default function DashboardV2() {
         if (!res.ok) throw new Error("Not logged in");
         return data;
       })
-      .then((data) =>
-        setStatus(`✅ Logged in: ${data.user?.email || "Yes"}`)
-      )
-      .catch(() => setStatus("❌ Not logged in"));
+      .then((data) => {
+        // Soporta varias formas de respuesta
+        const u = data.user || data.currentUser || null;
+        setUser(u);
+
+        const label =
+          u?.name
+            ? `${u.name}${u.email ? ` (${u.email})` : ""}`
+            : u?.email
+              ? u.email
+              : (data.loggedIn ? "Yes" : "Unknown");
+
+        setStatus(`✅ Logged in: ${label}`);
+      })
+      .catch(() => {
+        setUser(null);
+        setStatus("❌ Not logged in");
+      });
   }, []);
 
   // ✅ Cargar appointments
   useEffect(() => {
-    fetch(`${API_BASE}/api/appointments`, {
-      credentials: "include",
-    })
+    fetch(`${API_BASE}/api/appointments`, { credentials: "include" })
       .then((res) => res.json())
-      .then((data) =>
-        setAppointments(Array.isArray(data) ? data : [])
-      )
+      .then((data) => setAppointments(Array.isArray(data) ? data : []))
       .catch(() => setAppointments([]));
   }, []);
 
@@ -64,7 +75,6 @@ export default function DashboardV2() {
       method: "POST",
       credentials: "include",
     });
-
     window.location.href = "/login";
   };
 
@@ -74,16 +84,20 @@ export default function DashboardV2() {
         active={active}
         setActive={setActive}
         onLogout={onLogout}
+        // ✅ NUEVO: datos reales del usuario
+        profileName={user?.name || "Student"}
+        profileSub={user?.email || "Session Mode"}
       />
 
       <main className="content">
         <div className="pageCard">
           <h1>Student Appointment Dashboard</h1>
+
+          {/* ✅ Aquí se ve claramente el usuario */}
           <p className="subtitle">
-            Overview of your appointments • <b>{status}</b>
+            {status}
           </p>
 
-          {/* 🔍 Search */}
           <div className="searchRow">
             <span className="searchIcon">🔎</span>
             <input
@@ -94,7 +108,6 @@ export default function DashboardV2() {
             />
           </div>
 
-          {/* 📊 Stats */}
           <div className="cards">
             <div className="statCard purple">
               <div className="statTitle">Total Appointments</div>
@@ -118,14 +131,11 @@ export default function DashboardV2() {
             </div>
           </div>
 
-          {/* 📋 Table */}
           <h2 className="sectionTitle">Upcoming Appointments</h2>
 
           <div className="tableCard">
             <div className="tableTop">
-              <div className="itemsCount">
-                {filtered.length} items
-              </div>
+              <div className="itemsCount">{filtered.length} items</div>
             </div>
 
             <table className="table">
@@ -141,15 +151,12 @@ export default function DashboardV2() {
                   const st = String(a.status || "").toLowerCase();
                   const id = a.id ?? a._id ?? "";
                   const date = a.date ?? a.startTime ?? "";
-
                   return (
                     <tr key={id || `${date}-${st}`}>
                       <td>{id}</td>
                       <td>{date}</td>
                       <td>
-                        <span className={`pill ${st}`}>
-                          {st || "unknown"}
-                        </span>
+                        <span className={`pill ${st}`}>{st || "unknown"}</span>
                       </td>
                     </tr>
                   );

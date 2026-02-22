@@ -1,14 +1,7 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 
-export default function Sidebar({ active, setActive, onLogout }) {
-  const navigate = useNavigate();
-
-  const items = [
-    { label: "Dashboard", icon: "🏠", path: "/dashboard-v2" },
-    { label: "Schedule", icon: "🗓️", path: "/schedule" },
-    { label: "Settings", icon: "⚙️", path: "/settings" },
-  ];
+export default function Sidebar({ active, setActive, onLogout, profileName = "Student", profileSub = "Session Mode" }) {
+  const items = ["Dashboard", "Schedule", "Settings"];
 
   return (
     <aside className="sidebar">
@@ -25,24 +18,26 @@ export default function Sidebar({ active, setActive, onLogout }) {
       <ul className="menu">
         {items.map((item) => (
           <li
-            key={item.label}
-            className={active === item.label ? "active" : ""}
-            onClick={() => {
-              setActive(item.label);
-              navigate(item.path);
-            }}
+            key={item}
+            className={active === item ? "active" : ""}
+            onClick={() => setActive(item)}
           >
-            <span className="icon">{item.icon}</span>
-            <span className="label">{item.label}</span>
+            <span className="icon">
+              {item === "Dashboard" && "🏠"}
+              {item === "Schedule" && "🗓️"}
+              {item === "Settings" && "⚙️"}
+            </span>
+            <span className="label">{item}</span>
           </li>
         ))}
       </ul>
 
+      {/* ✅ AQUÍ: datos reales */}
       <div className="profile">
         <div className="avatar">👤</div>
         <div>
-          <div className="profileName">Student</div>
-          <div className="profileSub">Session Mode</div>
+          <div className="profileName">{profileName}</div>
+          <div className="profileSub">{profileSub}</div>
         </div>
       </div>
 
