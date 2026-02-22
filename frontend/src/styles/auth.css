@@ -10,6 +10,7 @@
   --github: #111827;
 }
 
+/* Layout */
 .auth-page{
   min-height: 100vh;
   display: grid;
@@ -17,27 +18,16 @@
   background: radial-gradient(900px 500px at 80% 10%, #dbe9ff 0%, #f4f7ff 40%, #eef3ff 100%);
 }
 
+/* Left panel (blue bar) */
 .auth-brand{
   position: relative;
   padding: 44px 40px;
   color: white;
+  background: linear-gradient(160deg, var(--panel), #0a3a8a);
   overflow: hidden;
 }
 
-.brand-image-bottom{
-  position: absolute;
-  bottom: 20px;
-  right: 30px;
-  width: 160px;
-  z-index: 2;
-}
-
-.brand-image-bottom img{
-  width: 100%;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-}
-
+/* Decorative light effect */
 .auth-brand::after{
   content: "";
   position: absolute;
@@ -47,6 +37,24 @@
   transform: rotate(-2deg);
 }
 
+/* Small bottom image */
+.brand-image-bottom{
+  position: absolute;
+  bottom: 24px;
+  right: 30px;
+  width: 170px;
+  z-index: 2;
+  opacity: 0.95;
+}
+
+.brand-image-bottom img{
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+}
+
+/* Brand content */
 .brand-top{
   display: flex;
   gap: 14px;
@@ -110,6 +118,7 @@
   z-index: 1;
 }
 
+/* Right side */
 .auth-main{
   display: grid;
   place-items: center;
@@ -138,6 +147,7 @@
   font-size: 14px;
 }
 
+/* Alerts */
 .auth-alert{
   margin-top: 14px;
   padding: 10px 12px;
@@ -148,22 +158,31 @@
   font-size: 14px;
 }
 
+.auth-success{
+  margin-top: 14px;
+  padding: 10px 12px;
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.25);
+  color: #14532d;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+/* Buttons */
 .btn{
   width: 100%;
-  min-height: 44px;       /* ✅ en vez de height */
-  height: auto;           /* ✅ permite crecer */
-  padding: 12px 16px;     /* ✅ espacio interno */
+  min-height: 44px;
+  height: auto;
+  padding: 12px 16px;
   border-radius: 12px;
   border: 1px solid transparent;
   font-weight: 600;
   cursor: pointer;
   margin-top: 16px;
-
-  display: inline-flex;   /* ✅ centra vertical y horizontal */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  line-height: 1.2;       /* ✅ evita cortes */
+  line-height: 1.2;
   text-align: center;
 }
 
@@ -186,6 +205,17 @@
   background: var(--primary-dark);
 }
 
+.btn-secondary{
+  background: rgba(31, 92, 255, 0.08);
+  border-color: rgba(31, 92, 255, 0.35);
+  color: var(--primary);
+}
+
+.btn-secondary:hover{
+  background: rgba(31, 92, 255, 0.14);
+}
+
+/* Divider */
 .divider{
   margin: 18px 0 10px;
   position: relative;
@@ -209,6 +239,7 @@
   font-size: 13px;
 }
 
+/* Form */
 .auth-form{
   display: grid;
   gap: 12px;
@@ -300,29 +331,8 @@
 .sep{
   opacity: .55;
 }
-/* ✅ Success message (green) */
-.auth-success{
-  margin-top: 14px;
-  padding: 10px 12px;
-  background: rgba(22, 163, 74, 0.12);
-  border: 1px solid rgba(22, 163, 74, 0.25);
-  color: #14532d;
-  border-radius: 12px;
-  font-size: 14px;
-}
 
-/* ✅ Secondary button (light blue) */
-.btn-secondary{
-  background: rgba(31, 92, 255, 0.08);
-  border-color: rgba(31, 92, 255, 0.35);
-  color: var(--primary);
-}
-
-.btn-secondary:hover{
-  background: rgba(31, 92, 255, 0.14);
-}
-
-/* ✅ Responsive: Mobile stack */
+/* Responsive */
 @media (max-width: 900px){
   .auth-page{
     grid-template-columns: 1fr;
@@ -341,19 +351,4 @@
     padding: 18px;
     place-items: start center;
   }
-}
-.brand-image-bottom{
-  position: absolute;
-  bottom: 24px;
-  right: 30px;
-  width: 170px;   /* ajusta tamaño aquí */
-  z-index: 2;
-  opacity: 0.95;
-}
-
-.brand-image-bottom img{
-  width: 100%;
-  height: auto;
-  border-radius: 14px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
