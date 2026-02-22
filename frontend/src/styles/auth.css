@@ -21,8 +21,11 @@
   position: relative;
   padding: 44px 40px;
   color: white;
-  background: linear-gradient(160deg, var(--panel), #0a3a8a);
   overflow: hidden;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .auth-brand::after{
