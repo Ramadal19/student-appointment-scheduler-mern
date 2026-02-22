@@ -54,19 +54,11 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-         {/* ✅ NUEVO: Dashboard V2 */}
-        <Route
-          path="/dashboard-v2"
-          element={
-            <ProtectedRoute>
               <DashboardV2 />
             </ProtectedRoute>
           }
         />
+
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
