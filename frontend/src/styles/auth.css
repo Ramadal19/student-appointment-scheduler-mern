@@ -41,11 +41,11 @@
   position: absolute;
 
   /* ✅ Posición responsive: se adapta al panel */
-  right: clamp(16px, 3vw, 40px);
+  right: clamp(30px, 50vw, 130px);
   bottom: clamp(16px, 3vw, 34px);
 
   /* ✅ Tamaño responsive */
-  width: clamp(120px, 18vw, 190px);
+  width: clamp(320px, 18vw, 400px);
 
   z-index: 2;
   opacity: 0.95;
@@ -55,7 +55,7 @@
   width: 100%;
   height: auto;
   border-radius: 14px;
-  box-shadow: 0 10px 25px rgba(0,0,0,1);
+  box-shadow: 0 10px 25px rgba(0,0,0,0);
 }
 
 /* Brand content */
