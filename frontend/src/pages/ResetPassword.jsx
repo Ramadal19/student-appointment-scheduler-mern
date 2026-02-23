@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import resetImg from "../assets/reset-bg.png";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -95,6 +96,9 @@ export default function ResetPassword() {
 
         <div className="brand-footer">
           <small>© {new Date().getFullYear()} Student Services</small>
+        </div>
+        <div className="brand-image-bottom">
+            <img src={resetImg} alt="Reset password visual" />
         </div>
       </section>
 

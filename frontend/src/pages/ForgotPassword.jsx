@@ -1,4 +1,5 @@
 import { useState } from "react";
+import forgotImg from "../assets/forg-bg.png";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -83,6 +84,9 @@ export default function ForgotPassword() {
 
         <div className="brand-footer">
           <small>© {new Date().getFullYear()} Student Services</small>
+        </div>
+        <div className="brand-image-bottom">
+            <img src={forgotImg} alt="Forgot password visual" />
         </div>
       </section>
 

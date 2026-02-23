@@ -40,18 +40,18 @@
 /* Small bottom image */
 .brand-image-bottom{
   position: absolute;
-  bottom: 24px;
-  right: 30px;
-  width: 170px;
+  bottom: 110px;
+  right: 70px;
+  width: 370px;
   z-index: 2;
-  opacity: 0.95;
+  opacity: 1;
 }
 
 .brand-image-bottom img{
   width: 100%;
   height: auto;
   border-radius: 14px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+
 }
 
 /* Brand content */

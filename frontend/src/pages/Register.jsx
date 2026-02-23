@@ -1,4 +1,5 @@
 import { useState } from "react";
+import registerImg from "../assets/reg-bg.png";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -100,6 +101,10 @@ export default function Register() {
         <div className="brand-footer">
           <small>© {new Date().getFullYear()} Student Services</small>
         </div>
+        <div className="brand-image-bottom">
+            <img src={registerImg} alt="Register visual" />
+        </div>
+
       </section>
 
       {/* Right: Register card */}
