@@ -4,7 +4,7 @@ import "./Dashboard.css";
 
 const API_BASE = "http://localhost:5000";
 
-export default function Dashboard() {
+export default function Dashboard({ appointment, setAppointment }) {
   const [active, setActive] = useState("Dashboard");
   const [appointments, setAppointments] = useState([]);
   const [search, setSearch] = useState("");

@@ -1,63 +1,51 @@
-import React, { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
+import React, { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import Confirmation from "./pages/Confirmation";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-import "./styles/auth.css";
-
 function Home() {
-  const [message, setMessage] = useState("");
-
-  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
-
-  useEffect(() => {
-    fetch(`${API_BASE}/api/health`, { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setMessage(data.message))
-      .catch((err) => console.error("API ERROR:", err));
-  }, [API_BASE]);
-
-  return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1>Student Appointment Scheduler</h1>
-      <p>{message}</p>
-
-      <div
-        style={{
-          marginTop: 20,
-          display: "flex",
-          gap: 16,
-          justifyContent: "center",
-        }}
-      >
-        <Link to="/login">Go to Login</Link>
-        <Link to="/register">Create account</Link>
-      </div>
-    </div>
-  );
+  return <h2>Welcome</h2>;
 }
 
 export default function App() {
+  const [appointment, setAppointment] = useState(null);
+
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
-
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        {/* Protected Dashboard */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <Dashboard
+                appointment={appointment}
+                setAppointment={setAppointment}
+              />
             </ProtectedRoute>
           }
         />
 
+        {/* Confirmation Page */}
+        <Route
+          path="/confirmation"
+          element={
+            <ProtectedRoute>
+              <Confirmation appointment={appointment} />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
