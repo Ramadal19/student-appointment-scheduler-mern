@@ -10,7 +10,8 @@ require("./config/passport"); // strategy + serialize/deserialize
 
 const authRoutes = require("./routes/auth");
 const advisorRoutes = require("./routes/advisors");
-const appointmentRoutes = require("./routes/appointments"); // ✅ NUEVO
+const appointmentRoutes = require("./routes/appointments");
+const availabilityRoutes = require("./routes/availability"); // ✅ NUEVO
 
 const app = express();
 
@@ -78,13 +79,16 @@ app.use(passport.session());
 // -------------------- Routes --------------------
 app.use("/auth", authRoutes);
 app.use("/api/advisors", advisorRoutes);
-app.use("/api/appointments", appointmentRoutes); // ✅ NUEVO (GET/POST/PATCH cancel)
+app.use("/api/appointments", appointmentRoutes);
+app.use("/api/availability", availabilityRoutes); // ✅ NUEVO
 
 app.get("/", (req, res) =>
   res.status(200).send("Backend server is running 🚀")
 );
 
-app.get("/api/health", (req, res) => res.json({ ok: true, message: "API running" }));
+app.get("/api/health", (req, res) =>
+  res.json({ ok: true, message: "API running" })
+);
 
 // -------------------- 404 --------------------
 app.use((req, res) => {

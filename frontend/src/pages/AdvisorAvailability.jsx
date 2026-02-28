@@ -54,10 +54,9 @@ export default function AdvisorAvailability() {
         }
 
         // 1) Availability del advisor
-        const resSlots = await fetch(
-          `${API_BASE}/api/availability/${advisorId}`,
-          { credentials: "include" }
-        );
+        const resSlots = await fetch(`${API_BASE}/api/availability?advisorId=${advisorId}`, {
+            credentials: "include",
+        });
 
         if (!resSlots.ok) {
           const t = await resSlots.text();
