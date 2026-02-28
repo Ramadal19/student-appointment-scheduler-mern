@@ -20,7 +20,7 @@ import ResetPassword from "./pages/ResetPassword";
 import "./styles/auth.css";
 
 export default function App() {
-  const [appointment, setAppointment] = useState(null);
+  //const [appointment, setAppointment] = useState(null);
 
   return (
     <BrowserRouter>
@@ -51,12 +51,12 @@ export default function App() {
 
         {/* Candy feature: Confirmation */}
         <Route
-          path="/confirmation"
-          element={
-            <ProtectedRoute>
-              <Confirmation appointment={appointment} />
-            </ProtectedRoute>
-          }
+         // path="/confirmation"
+         // element={
+         //   <ProtectedRoute>
+         //     <Confirmation appointment={appointment} />
+         //   </ProtectedRoute>
+         // }
         />
 
         {/* Fallback */}
