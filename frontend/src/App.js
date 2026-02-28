@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+//import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Home from "./pages/Home";
@@ -10,7 +11,7 @@ import DashboardV2 from "./pages/DashboardV2";
 import StudentDashboard from "./pages/Dashboard";
 
 // Candy feature pages (ajusta rutas si el archivo está en otro lugar)
-import Confirmation from "./pages/Confirmation";
+//import Confirmation from "./pages/Confirmation";
 // Si Candy tiene un Dashboard diferente para el estudiante, mejor ponlo en otra ruta:
 // import StudentDashboard from "./pages/Dashboard";
 
