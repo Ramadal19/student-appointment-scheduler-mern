@@ -81,13 +81,21 @@ router.post("/login", async (req, res, next) => {
 
     const user = await User.findOne({ email: normalizedEmail });
 
-    // Email no existe (o no es cuenta local)
-    if (!user || !user.passwordHash) {
-      return res.status(404).json({
-        message: "No account found for this email. Please create one.",
-        code: "USER_NOT_FOUND",
+    // Email no existe
+if (!user) {
+  return res.status(404).json({
+    message: "No account found for this email. Please create one.",
+    code: "USER_NOT_FOUND",
+  });
+}
+
+    // Existe pero NO tiene password (cuenta GitHub/manual sin password)
+    if (!user.passwordHash) {
+      return res.status(409).json({
+        message: "This email is registered with GitHub. Please sign in with GitHub or create a password using 'Forgot password'.",
+        code: "GITHUB_ACCOUNT",
       });
-    }
+  }
 
     // Email existe pero password incorrecto
     const ok = await bcrypt.compare(String(password), user.passwordHash);
