@@ -9,6 +9,8 @@ import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardV2 from "./pages/DashboardV2";
 import StudentDashboard from "./pages/Dashboard";
+import Schedule from "./pages/Schedule";
+import AdvisorAvailability from "./pages/AdvisorAvailability";
 
 // Candy feature pages (ajusta rutas si el archivo está en otro lugar)
 //import Confirmation from "./pages/Confirmation";
@@ -37,6 +39,17 @@ export default function App() {
         <Route path="/student-dashboard"  element={
           <ProtectedRoute>
             <StudentDashboard />
+          </ProtectedRoute>
+        }/>
+        <Route path="/schedule" element={
+          <ProtectedRoute>
+            <Schedule />
+          </ProtectedRoute>
+        }/>
+
+        <Route path="/schedule/:advisorId" element={
+          <ProtectedRoute>
+            <AdvisorAvailability />
           </ProtectedRoute>
         }/>
 
