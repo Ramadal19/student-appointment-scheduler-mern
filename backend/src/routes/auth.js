@@ -218,11 +218,17 @@ router.post("/reset-password/:token", async (req, res, next) => {
 
 // -------------------- Logout --------------------
 router.post("/logout", (req, res, next) => {
+  const isProd = process.env.NODE_ENV === "production";
+
   req.logout((err) => {
     if (err) return next(err);
 
     req.session.destroy(() => {
-      res.clearCookie("sid", { sameSite: "none", secure: true });
+      res.clearCookie("sid", {
+        httpOnly: true,
+        sameSite: isProd ? "none" : "lax",
+        secure: isProd,
+      });
       res.json({ ok: true });
     });
   });

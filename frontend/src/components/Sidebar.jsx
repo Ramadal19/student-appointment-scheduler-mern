@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function Sidebar({ active, setActive, onLogout, profileName = "Student", profileSub = "Session Mode" }) {
-  const items = ["Dashboard", "Schedule", "Settings"];
+  const items = ["Dashboard", "Request Appointment", "Settings"];
 
   return (
     <aside className="sidebar">
@@ -24,7 +24,7 @@ export default function Sidebar({ active, setActive, onLogout, profileName = "St
           >
             <span className="icon">
               {item === "Dashboard" && "🏠"}
-              {item === "Schedule" && "🗓️"}
+              {item === "Request Appointment" && "🗓️"}
               {item === "Settings" && "⚙️"}
             </span>
             <span className="label">{item}</span>

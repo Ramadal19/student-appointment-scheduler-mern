@@ -20,58 +20,58 @@ passport.deserializeUser(async (id, done) => {
 });
 
 // -------------------- GitHub OAuth Strategy --------------------
-passport.use(
-  new GitHubStrategy(
-    {
-      clientID: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL:
-        process.env.GITHUB_CALLBACK_URL ||
-        "https://student-appointment-scheduler-mern.onrender.com/auth/github/callback",
-      scope: ["user:email"],
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        const githubId = String(profile.id);
+const hasGithubOAuth =
+  process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET;
 
-        // 1) Busca usuario por githubId
-        let user = await User.findOne({ githubId });
+if (!hasGithubOAuth) {
+  console.warn(
+    "⚠️ GitHub OAuth disabled: missing GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET in .env"
+  );
+} else {
+  passport.use(
+    new GitHubStrategy(
+      {
+        clientID: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+        callbackURL:
+          process.env.GITHUB_CALLBACK_URL ||
+          "https://student-appointment-scheduler-mern.onrender.com/auth/github/callback",
+        scope: ["user:email"],
+      },
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          const githubId = String(profile.id);
+          let user = await User.findOne({ githubId });
 
-        // 2) Intenta sacar un email confiable
-        // Nota: GitHub a veces no devuelve email público.
-        const emailFromProfile =
-          profile?.emails?.find((e) => e?.value)?.value ||
-          profile?._json?.email ||
-          null;
+          const emailFromProfile =
+            profile?.emails?.find((e) => e?.value)?.value ||
+            profile?._json?.email ||
+            null;
 
-        // 3) Si no existe, lo creamos
-        if (!user) {
-          user = await User.create({
-            name:
-              profile.displayName ||
-              profile.username ||
-              "GitHub User",
-            email: emailFromProfile ? String(emailFromProfile).toLowerCase() : undefined,
-            githubId,
-            provider: "github",
-            role: "student",
-            profileComplete: Boolean(emailFromProfile),
-          });
-        } else {
-          // 4) Si existe, podemos completar email si antes estaba vacío
-          if (!user.email && emailFromProfile) {
-            user.email = String(emailFromProfile).toLowerCase();
-            user.profileComplete = true;
-            await user.save();
+          if (!user) {
+            user = await User.create({
+              name: profile.displayName || profile.username || "GitHub User",
+              email: emailFromProfile
+                ? String(emailFromProfile).toLowerCase()
+                : undefined,
+              githubId,
+              provider: "github",
+              role: "student",
+              profileComplete: Boolean(emailFromProfile),
+            });
+          } else {
+            if (!user.email && emailFromProfile) {
+              user.email = String(emailFromProfile).toLowerCase();
+              user.profileComplete = true;
+              await user.save();
+            }
           }
+
+          return done(null, user);
+        } catch (err) {
+          return done(err);
         }
-
-        return done(null, user);
-      } catch (err) {
-        return done(err);
       }
-    }
-  )
-);
-
-module.exports = passport;
+    )
+  );
+}

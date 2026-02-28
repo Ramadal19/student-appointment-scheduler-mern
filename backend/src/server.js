@@ -9,12 +9,17 @@ const passport = require("passport");
 require("./config/passport"); // strategy + serialize/deserialize
 
 const authRoutes = require("./routes/auth");
+const advisorRoutes = require("./routes/advisors");
 
 const app = express();
 
+// -------------------- Env helpers --------------------
+const isProd = process.env.NODE_ENV === "production";
+
 // -------------------- CORS --------------------
 const FRONTEND =
-  process.env.FRONTEND_URL || "https://student-appointment-scheduler-mern.vercel.app";
+  process.env.FRONTEND_URL ||
+  "https://student-appointment-scheduler-mern.vercel.app";
 
 app.use(
   cors({
@@ -27,8 +32,8 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Render proxy (para secure cookies)
-app.set("trust proxy", 1);
+// ✅ Render proxy (solo en producción para cookies secure)
+if (isProd) app.set("trust proxy", 1);
 
 // -------------------- MongoDB --------------------
 mongoose.set("bufferCommands", false);
@@ -54,12 +59,12 @@ app.use(
     secret: process.env.SESSION_SECRET || "dev_secret_change_me",
     resave: false,
     saveUninitialized: false,
-    proxy: true,
+    proxy: isProd, // ✅ true solo en producción
     rolling: true,
     cookie: {
       httpOnly: true,
-      secure: true, // Render HTTPS
-      sameSite: "none", // Vercel -> Render (cross-site)
+      secure: isProd, // ✅ local: false (HTTP), prod: true (HTTPS)
+      sameSite: isProd ? "none" : "lax", // ✅ local: lax, prod: none (cross-site)
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
@@ -71,6 +76,7 @@ app.use(passport.session());
 
 // -------------------- Routes --------------------
 app.use("/auth", authRoutes);
+app.use("/api/advisors", advisorRoutes);
 
 app.get("/", (req, res) => res.status(200).send("Backend server is running 🚀"));
 
