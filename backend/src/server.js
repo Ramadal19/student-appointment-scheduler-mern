@@ -41,8 +41,8 @@ mongoose.set("bufferCommands", false);
 (async function connectMongo() {
   try {
     if (!process.env.MONGO_URI) {
-      console.warn("⚠️ MONGO_URI no está definido. (Necesario para auth/DB)");
-      return;
+      console.error("❌ MONGO_URI missing");
+      process.exit(1);
     }
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB connected");

@@ -78,6 +78,17 @@ router.post("/login", async (req, res, next) => {
     }
 
     const normalizedEmail = String(email).trim().toLowerCase();
+    const mongoose = require("mongoose"); // arriba del archivo
+
+    console.log("=== LOGIN DEBUG ===");
+    console.log("normalizedEmail:", normalizedEmail);
+    console.log("readyState:", mongoose.connection.readyState); // 0/1/2/3
+    console.log("dbName:", mongoose.connection.name);
+    console.log("host:", mongoose.connection.host);
+    console.log("collection:", User.collection.name);
+    const total = await User.countDocuments();
+    console.log("totalUsers:", total);
+    console.log("===================");
 
     const user = await User.findOne({ email: normalizedEmail });
 
