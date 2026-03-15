@@ -28,13 +28,21 @@ export default function Dashboard() {
 };
 
   return (
-    <div style={{ padding: 40 }}>
-      <h1>Dashboard</h1>
-      <p>{status}</p>
+  <div style={{ padding: 40 }}>
+    <h1>Dashboard</h1>
+    <p>{status}</p>
 
-      <button onClick={logout} style={{ marginTop: 20 }}>
-        Logout
-      </button>
-    </div>
-  );
+    <button onClick={logout} style={{ marginTop: 20 }}>
+      Logout
+    </button>
+
+    <h2 style={{ marginTop: 40 }}>Available Counselors</h2>
+
+    <ul>
+      <li>Maria Lopez - Academic Advisor</li>
+      <li>John Smith - Career Counselor</li>
+      <li>Daniel Rivera - Student Support</li>
+    </ul>
+  </div>
+);
 }
