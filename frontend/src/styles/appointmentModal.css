@@ -1,0 +1,140 @@
+.modalOverlay{
+
+  position:fixed;
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+
+  background:rgba(0,0,0,0.45);
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  z-index:999;
+
+}
+
+.appointmentCard{
+
+  width:380px;
+
+  background:white;
+
+  border-radius:20px;
+
+  padding:35px;
+
+  text-align:center;
+
+  box-shadow:0 25px 60px rgba(0,0,0,0.25);
+
+  animation:fadeIn .25s ease;
+
+}
+
+.checkPreview{
+
+  width:60px;
+  height:60px;
+
+  border-radius:50%;
+
+  background:#e6f4ff;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:28px;
+
+  margin:auto;
+  margin-bottom:15px;
+
+}
+
+.appointmentSummary{
+  margin:20px 0;
+}
+
+.appointmentTime{
+
+  font-size:24px;
+  font-weight:700;
+}
+
+.appointmentAdvisor{
+
+  font-size:20px;
+  margin-top:6px;
+  font-weight:600;
+}
+
+.appointmentDate{
+
+  margin-top:10px;
+  color:#666;
+}
+
+.appointmentTopic{
+
+  margin-top:8px;
+  color:#444;
+}
+
+.modalActions{
+
+  display:flex;
+  justify-content:space-between;
+  margin-top:25px;
+
+}
+
+.cancelBtn{
+
+  background:#e5e7eb;
+  border:none;
+
+  padding:12px 20px;
+
+  border-radius:30px;
+
+  cursor:pointer;
+
+}
+
+.confirmBtn{
+
+  background:linear-gradient(90deg,#1e3a8a,#3b82f6);
+
+  color:white;
+
+  border:none;
+
+  padding:12px 22px;
+
+  border-radius:30px;
+
+  cursor:pointer;
+
+}
+
+.confirmBtn:hover{
+  transform:scale(1.05);
+}
+
+@keyframes fadeIn{
+
+  from{
+    transform:scale(.9);
+    opacity:0;
+  }
+
+  to{
+    transform:scale(1);
+    opacity:1;
+  }
+
+}

@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import RequestAppointment from "./RequestAppointment";
 import "../styles/Dashboard.css";
 
 const API_BASE =
   process.env.REACT_APP_API_URL ||
-  "https://student-appointment-scheduler-mern.onrender.com";
+  "http://localhost:5000";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -16,9 +17,8 @@ export default function Dashboard() {
 
   const [status, setStatus] = useState("Checking session...");
   const [user, setUser] = useState(null);
-  const [sessionOk, setSessionOk] = useState(false); // ✅ nuevo
+  const [sessionOk, setSessionOk] = useState(false);
 
-  // ✅ Verificar sesión + traer usuario (y si no, sacar a login)
   useEffect(() => {
     fetch(`${API_BASE}/auth/me`, { credentials: "include" })
       .then(async (res) => {
@@ -31,14 +31,13 @@ export default function Dashboard() {
         setUser(u);
         setSessionOk(true);
 
-        const label =
-          u?.name
-            ? `${u.name}${u.email ? ` (${u.email})` : ""}`
-            : u?.email
-            ? u.email
-            : data.loggedIn
-            ? "Yes"
-            : "Unknown";
+        const label = u?.name
+          ? `${u.name}${u.email ? ` (${u.email})` : ""}`
+          : u?.email
+          ? u.email
+          : data.loggedIn
+          ? "Yes"
+          : "Unknown";
 
         setStatus(`✅ Welcome, ${label}`);
       })
@@ -46,22 +45,22 @@ export default function Dashboard() {
         setUser(null);
         setSessionOk(false);
         setStatus("❌ Not logged in");
-        // ✅ clave: evita que el usuario vuelva con la flecha atrás
         navigate("/login", { replace: true });
       });
   }, [navigate]);
 
-  // ✅ Cargar appointments SOLO si hay sesión
   useEffect(() => {
     if (!sessionOk) return;
 
-    fetch(`${API_BASE}/api/appointments`, { credentials: "include" })
-      .then((res) => res.json())
+    fetch(`${API_BASE}/api/appointments/my`, { credentials: "include" })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to load appointments");
+        return res.json();
+      })
       .then((data) => setAppointments(Array.isArray(data) ? data : []))
       .catch(() => setAppointments([]));
   }, [sessionOk]);
 
-  // 🔍 Filtrado
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return appointments;
@@ -79,10 +78,11 @@ export default function Dashboard() {
     (a) => String(a.status).toLowerCase() === "confirmed"
   ).length;
   const pending = filtered.filter(
-    (a) => String(a.status).toLowerCase() === "pending"
+    (a) =>
+      String(a.status).toLowerCase() === "pending" ||
+      String(a.status).toLowerCase() === "requested"
   ).length;
 
-  // 🔐 Logout (con replace)
   const onLogout = async () => {
     try {
       await fetch(`${API_BASE}/auth/logout`, {
@@ -90,12 +90,12 @@ export default function Dashboard() {
         credentials: "include",
       });
     } catch (e) {
-      // aunque falle, igual sacamos al user
+      // aunque falle logout remoto, igual limpiamos UI
     } finally {
       setUser(null);
       setAppointments([]);
       setSessionOk(false);
-      navigate("/login", { replace: true }); // ✅ clave
+      navigate("/login", { replace: true });
     }
   };
 
@@ -110,87 +110,107 @@ export default function Dashboard() {
       />
 
       <main className="content">
-        <div className="pageCard">
-          <h1>Student Appointment Dashboard</h1>
+        {active === "Dashboard" && (
+          <div className="pageCard">
+            <h1>Student Appointment Dashboard</h1>
 
-          <p className="subtitle">{status}</p>
+            <p className="subtitle">{status}</p>
 
-          <div className="searchRow">
-            <span className="searchIcon">🔎</span>
-            <input
-              className="searchInput"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search..."
-              disabled={!sessionOk}
-            />
-          </div>
-
-          <div className="cards">
-            <div className="statCard purple">
-              <div className="statTitle">Total Appointments</div>
-              <div className="statSub">All</div>
-              <div className="statValue">{total}</div>
-              <div className="statFoot">Updated just now</div>
+            <div className="searchRow">
+              <span className="searchIcon">🔎</span>
+              <input
+                className="searchInput"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search..."
+                disabled={!sessionOk}
+              />
             </div>
 
-            <div className="statCard teal">
-              <div className="statTitle">Confirmed</div>
-              <div className="statSub">OK</div>
-              <div className="statValue">{confirmed}</div>
-              <div className="statFoot">Ready to attend</div>
+            <div className="cards">
+              <div className="statCard purple">
+                <div className="statTitle">Total Appointments</div>
+                <div className="statSub">All</div>
+                <div className="statValue">{total}</div>
+                <div className="statFoot">Updated just now</div>
+              </div>
+
+              <div className="statCard teal">
+                <div className="statTitle">Confirmed</div>
+                <div className="statSub">OK</div>
+                <div className="statValue">{confirmed}</div>
+                <div className="statFoot">Ready to attend</div>
+              </div>
+
+              <div className="statCard yellow">
+                <div className="statTitle">Pending</div>
+                <div className="statSub">Wait</div>
+                <div className="statValue">{pending}</div>
+                <div className="statFoot">Needs confirmation</div>
+              </div>
             </div>
 
-            <div className="statCard yellow">
-              <div className="statTitle">Pending</div>
-              <div className="statSub">Wait</div>
-              <div className="statValue">{pending}</div>
-              <div className="statFoot">Needs confirmation</div>
-            </div>
-          </div>
+            <h2 className="sectionTitle">Upcoming Appointments</h2>
 
-          <h2 className="sectionTitle">Upcoming Appointments</h2>
+            <div className="tableCard">
+              <div className="tableTop">
+                <div className="itemsCount">{filtered.length} items</div>
+              </div>
 
-          <div className="tableCard">
-            <div className="tableTop">
-              <div className="itemsCount">{filtered.length} items</div>
-            </div>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th style={{ width: "120px" }}>ID</th>
+                    <th style={{ width: "220px" }}>Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((a) => {
+                    const st = String(a.status || "").toLowerCase();
+                    const id = a.id ?? a._id ?? "";
+                    const date = a.date ?? a.startTime ?? "";
 
-            <table className="table">
-              <thead>
-                <tr>
-                  <th style={{ width: "120px" }}>ID</th>
-                  <th style={{ width: "220px" }}>Date</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((a) => {
-                  const st = String(a.status || "").toLowerCase();
-                  const id = a.id ?? a._id ?? "";
-                  const date = a.date ?? a.startTime ?? "";
-                  return (
-                    <tr key={id || `${date}-${st}`}>
-                      <td>{id}</td>
-                      <td>{date}</td>
-                      <td>
-                        <span className={`pill ${st}`}>{st || "unknown"}</span>
+                    return (
+                      <tr key={id || `${date}-${st}`}>
+                        <td>{id}</td>
+                        <td>
+                          {date
+                            ? new Date(date).toLocaleString()
+                            : "No date"}
+                        </td>
+                        <td>
+                          <span className={`pill ${st}`}>{st || "unknown"}</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {filtered.length === 0 && (
+                    <tr>
+                      <td colSpan="3" className="empty">
+                        No appointments found.
                       </td>
                     </tr>
-                  );
-                })}
-
-                {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan="3" className="empty">
-                      No appointments found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
+
+        {active === "Request Appointment" && (
+          <div className="pageCard">
+            <RequestAppointment />
+          </div>
+        )}
+
+        {active === "Settings" && (
+          <div className="pageCard">
+            <h1>Settings</h1>
+            <p className="subtitle">Settings section coming soon.</p>
+          </div>
+        )}
       </main>
     </div>
   );

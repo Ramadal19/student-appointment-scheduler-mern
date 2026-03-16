@@ -3,12 +3,13 @@ const mongoose = require("mongoose");
 
 const Appointment = require("../models/Appointment");
 const Availability = require("../models/Availability");
+const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// Populate completo para React (alineado a tus modelos)
+// Populate completo para React
 const appointmentPopulate = [
   { path: "advisorId", select: "name email role" },
   { path: "studentId", select: "name email role profileComplete" },
@@ -16,25 +17,37 @@ const appointmentPopulate = [
   { path: "availabilityId", select: "advisorId startTime endTime isBooked" },
 ];
 
-// Guardrail lunch 12–1 (por si alguien crea slots por error)
+// Guardrail lunch 12–1
 function isLunchSlot(slot) {
   if (!slot?.startTime) return false;
   const d = new Date(slot.startTime);
   if (Number.isNaN(d.getTime())) return false;
-  return d.getHours() === 12; // 12:00-12:59
+  return d.getHours() === 12;
 }
 
 /**
  * GET /appointments
+ * Admin/advisor only
  * Opcional: ?advisorId=...
  */
-router.get("/", async (req, res) => {
+router.get("/", requireAuth, requireRole("admin", "advisor"), async (req, res) => {
   try {
     const { advisorId } = req.query;
-
     const filter = {};
+
+    if (req.user.role === "advisor") {
+      filter.advisorId = req.user._id;
+    }
+
     if (advisorId) {
-      if (!isValidId(advisorId)) return res.status(400).json({ error: "Invalid advisorId" });
+      if (!isValidId(advisorId)) {
+        return res.status(400).json({ error: "Invalid advisorId" });
+      }
+
+      if (req.user.role === "advisor" && String(req.user._id) !== String(advisorId)) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+
       filter.advisorId = advisorId;
     }
 
@@ -49,13 +62,31 @@ router.get("/", async (req, res) => {
 });
 
 /**
- * GET /appointments/student/:studentId
- * Temporal: “mis citas”; luego será /appointments/my usando req.user._id
+ * GET /appointments/my
+ * Mis citas del usuario autenticado
  */
-router.get("/student/:studentId", async (req, res) => {
+router.get("/my", requireAuth, async (req, res) => {
+  try {
+    const appts = await Appointment.find({ studentId: req.user._id })
+      .populate(appointmentPopulate)
+      .sort({ startTime: 1 });
+
+    return res.json(appts);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * GET /appointments/student/:studentId
+ * Mantener temporalmente, pero solo admin
+ */
+router.get("/student/:studentId", requireAuth, requireRole("admin"), async (req, res) => {
   try {
     const { studentId } = req.params;
-    if (!isValidId(studentId)) return res.status(400).json({ error: "Invalid studentId" });
+    if (!isValidId(studentId)) {
+      return res.status(400).json({ error: "Invalid studentId" });
+    }
 
     const appts = await Appointment.find({ studentId })
       .populate(appointmentPopulate)
@@ -69,18 +100,14 @@ router.get("/student/:studentId", async (req, res) => {
 
 /**
  * POST /appointments
- * Body: { studentId, advisorId, topicId, availabilityId, notes? }
- *
- * - Valida que el slot exista y pertenezca al advisor
- * - Evita double booking (lock isBooked + unique availabilityId + índice parcial)
- * - Bloquea lunch 12–1
- * - Devuelve appointment con populate para React
+ * Body: { advisorId, topicId, availabilityId, notes? }
+ * studentId sale de req.user._id
  */
-router.post("/", async (req, res) => {
-  const { studentId, advisorId, topicId, availabilityId, notes } = req.body;
+router.post("/", requireAuth, requireRole("student"), async (req, res) => {
+  const { advisorId, topicId, availabilityId, notes } = req.body;
+  const studentId = req.user._id;
 
-  // Requeridos + ObjectId
-  const required = { studentId, advisorId, topicId, availabilityId };
+  const required = { advisorId, topicId, availabilityId };
   for (const [k, v] of Object.entries(required)) {
     if (!v) return res.status(400).json({ error: `Missing field: ${k}` });
     if (!isValidId(v)) return res.status(400).json({ error: `Invalid ObjectId for ${k}` });
@@ -92,21 +119,19 @@ router.post("/", async (req, res) => {
     let createdId = null;
 
     await session.withTransaction(async () => {
-      // 0) Validar slot existe
       const slotCheck = await Availability.findById(availabilityId).session(session);
-      if (!slotCheck) throw Object.assign(new Error("SLOT_NOT_FOUND"), { statusCode: 404 });
+      if (!slotCheck) {
+        throw Object.assign(new Error("SLOT_NOT_FOUND"), { statusCode: 404 });
+      }
 
-      // 0a) Slot pertenece al advisor
       if (String(slotCheck.advisorId) !== String(advisorId)) {
         throw Object.assign(new Error("SLOT_DOES_NOT_BELONG_TO_ADVISOR"), { statusCode: 400 });
       }
 
-      // 5) Lunch guardrail
       if (isLunchSlot(slotCheck)) {
         throw Object.assign(new Error("LUNCH_HOUR_NOT_BOOKABLE"), { statusCode: 409 });
       }
 
-      // 1) Lock del slot (solo si no está reservado)
       const lockedSlot = await Availability.findOneAndUpdate(
         { _id: availabilityId, advisorId, isBooked: false },
         { $set: { isBooked: true } },
@@ -117,7 +142,6 @@ router.post("/", async (req, res) => {
         throw Object.assign(new Error("SLOT_NOT_AVAILABLE"), { statusCode: 409 });
       }
 
-      // 2) Crear appointment (status enum: requested/confirmed/canceled/completed)
       const appt = await Appointment.create(
         [
           {
@@ -140,20 +164,27 @@ router.post("/", async (req, res) => {
     const populated = await Appointment.findById(createdId).populate(appointmentPopulate);
     return res.status(201).json(populated);
   } catch (err) {
-    // Duplicados (availabilityId unique o índice parcial por advisorId/startTime)
     if (err?.code === 11000) {
       return res.status(409).json({
         error: "Duplicate booking detected (slot already has an appointment).",
       });
     }
 
-    if (err.message === "SLOT_NOT_FOUND") return res.status(404).json({ error: "Slot not found" });
-    if (err.message === "SLOT_DOES_NOT_BELONG_TO_ADVISOR")
+    if (err.message === "SLOT_NOT_FOUND") {
+      return res.status(404).json({ error: "Slot not found" });
+    }
+
+    if (err.message === "SLOT_DOES_NOT_BELONG_TO_ADVISOR") {
       return res.status(400).json({ error: "Slot does not belong to the given advisorId" });
-    if (err.message === "LUNCH_HOUR_NOT_BOOKABLE")
+    }
+
+    if (err.message === "LUNCH_HOUR_NOT_BOOKABLE") {
       return res.status(409).json({ error: "Lunch hour (12–1) is not bookable." });
-    if (err.message === "SLOT_NOT_AVAILABLE")
+    }
+
+    if (err.message === "SLOT_NOT_AVAILABLE") {
       return res.status(409).json({ error: "Slot not available (already booked or invalid)." });
+    }
 
     return res.status(err.statusCode || 500).json({ error: err.message });
   } finally {
@@ -163,10 +194,9 @@ router.post("/", async (req, res) => {
 
 /**
  * PATCH /appointments/:id/cancel
- * Cancela y libera Availability.isBooked=false
- * (Endpoint único: elimina DELETE duplicado)
+ * Student dueño, advisor relacionado o admin
  */
-router.patch("/:id/cancel", async (req, res) => {
+router.patch("/:id/cancel", requireAuth, async (req, res) => {
   const { id } = req.params;
   if (!isValidId(id)) return res.status(400).json({ error: "Invalid appointment id" });
 
@@ -177,18 +207,22 @@ router.patch("/:id/cancel", async (req, res) => {
 
     await session.withTransaction(async () => {
       const appt = await Appointment.findById(id).session(session);
-      if (!appt) throw Object.assign(new Error("APPT_NOT_FOUND"), { statusCode: 404 });
+      if (!appt) {
+        throw Object.assign(new Error("APPT_NOT_FOUND"), { statusCode: 404 });
+      }
 
-      // Idempotente
+      const isOwner = String(appt.studentId) === String(req.user._id);
+      const isAdvisor = String(appt.advisorId) === String(req.user._id);
+      const isAdmin = req.user.role === "admin";
+
+      if (!isOwner && !isAdvisor && !isAdmin) {
+        throw Object.assign(new Error("FORBIDDEN"), { statusCode: 403 });
+      }
+
       if (appt.status === "canceled") {
         targetId = appt._id;
         return;
       }
-
-      // (opcional) si no quieres permitir cancelar completed, descomenta:
-      // if (appt.status === "completed") {
-      //   throw Object.assign(new Error("CANNOT_CANCEL_COMPLETED"), { statusCode: 409 });
-      // }
 
       const shouldRelease = appt.status === "confirmed" || appt.status === "requested";
 
@@ -209,10 +243,13 @@ router.patch("/:id/cancel", async (req, res) => {
     const populated = await Appointment.findById(targetId).populate(appointmentPopulate);
     return res.json(populated);
   } catch (err) {
-    if (err.message === "APPT_NOT_FOUND") return res.status(404).json({ error: "Appointment not found" });
+    if (err.message === "APPT_NOT_FOUND") {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
 
-    // if (err.message === "CANNOT_CANCEL_COMPLETED")
-    //   return res.status(409).json({ error: "Cannot cancel a completed appointment" });
+    if (err.message === "FORBIDDEN") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
 
     return res.status(err.statusCode || 500).json({ error: err.message });
   } finally {

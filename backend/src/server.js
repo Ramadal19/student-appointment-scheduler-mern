@@ -4,6 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
+const { requireAuth } = require("./middleware/auth");
 const session = require("express-session");
 const passport = require("passport");
 require("./config/passport"); // strategy + serialize/deserialize
@@ -12,7 +13,7 @@ const authRoutes = require("./routes/auth");
 const advisorRoutes = require("./routes/advisors");
 const appointmentRoutes = require("./routes/appointments");
 const availabilityRoutes = require("./routes/availability"); // ✅ NUEVO
-
+const topicRoutes = require("./routes/topics");
 const app = express();
 
 // -------------------- Env helpers --------------------
@@ -81,6 +82,7 @@ app.use("/auth", authRoutes);
 app.use("/api/advisors", advisorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/availability", availabilityRoutes); // ✅ NUEVO
+app.use("/api/topics", topicRoutes);
 
 app.get("/", (req, res) =>
   res.status(200).send("Backend server is running 🚀")
@@ -89,7 +91,17 @@ app.get("/", (req, res) =>
 app.get("/api/health", (req, res) =>
   res.json({ ok: true, message: "API running" })
 );
-
+app.get("/api/protected-test", requireAuth, (req, res) => {
+  res.json({
+    ok: true,
+    message: "You are authenticated",
+    user: {
+      id: req.user?._id,
+      email: req.user?.email,
+      role: req.user?.role,
+    },
+  });
+});
 // -------------------- 404 --------------------
 app.use((req, res) => {
   res.status(404).json({ ok: false, message: "Route not found" });

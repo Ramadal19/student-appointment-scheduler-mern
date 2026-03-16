@@ -1,0 +1,220 @@
+.requestPage {
+  max-width: 1100px;
+}
+
+.requestPage h2 {
+  font-size: 28px;
+  margin-bottom: 8px;
+  color: #123d82;
+}
+
+.requestPage .subtitle {
+  color: #6b7280;
+  margin-bottom: 22px;
+}
+
+.helperText {
+  color: #6b7280;
+  margin-top: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+
+.field label {
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #123d82;
+}
+
+.field select,
+.field textarea {
+  border: 1px solid #cfd8ea;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  background: #ffffff;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.scheduleWrap {
+  margin-top: 20px;
+  background: linear-gradient(180deg, #92b9ef 0%, #0b3f87 100%);
+  border-radius: 22px;
+  padding: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.scheduleHeader {
+  margin-bottom: 18px;
+  color: white;
+}
+
+.scheduleHeader h3 {
+  margin: 0 0 6px 0;
+  font-size: 22px;
+}
+
+.scheduleHeader p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.scheduleGrid {
+  display: grid;
+  grid-template-columns: 150px repeat(5, minmax(90px, 1fr));
+  gap: 6px;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.timeCorner,
+.dayHeader,
+.timeLabel,
+.cell {
+  border-radius: 15px;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px;
+  font-weight: 700;
+}
+
+.timeCorner {
+  background: #082e64;
+  color: white;
+}
+
+.dayHeader {
+  background: #0f2b57;
+  color: white;
+  font-size: 16px;
+}
+
+.timeLabel {
+  background: #ffffff;
+  color: #000000;
+  font-size: 14px;
+}
+
+.cell {
+  border: none;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  font-size: 13px;
+}
+
+.cell:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.availableCell {
+  background: #c0d4f1;
+  color: #000000;
+}
+
+.bookedCell {
+  background: #a4a7ad;
+  color: #5b6472;
+  cursor: not-allowed;
+}
+
+.selectedCell {
+  background: #2a4d85;
+  color: white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+}
+
+.emptyCell {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+}
+
+.bookingPanel {
+  margin-top: 24px;
+  background: #f8fbff;
+  border: 1px solid #dbe6f6;
+  border-radius: 22px;
+  padding: 22px;
+}
+
+.selectionSummary {
+  margin-bottom: 18px;
+}
+
+.selectionSummary h3 {
+  margin: 0 0 8px 0;
+  color: #123d82;
+}
+
+.selectionSummary p {
+  margin: 4px 0;
+  color: #374151;
+}
+
+.btn-primary {
+  margin-top: 8px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: none;
+  background: #123d82;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: #0f336c;
+}
+
+.btn-primary:disabled {
+  background: #93a3bf;
+  cursor: not-allowed;
+}
+
+.auth-alert {
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: #ffecec;
+  border: 1px solid #f3b6b6;
+  color: #991b1b;
+}
+
+.success-alert {
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: #ebfff2;
+  border: 1px solid #a7f3c5;
+  color: #065f46;
+}
+
+@media (max-width: 1100px) {
+  .scheduleGrid {
+    grid-template-columns: 150px repeat(5, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .scheduleWrap {
+    overflow-x: auto;
+  }
+
+  .scheduleGrid {
+    min-width: 900px;
+  }
+}
