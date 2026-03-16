@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import resetImg from "../assets/reset-bg.png";
 
+const API_BASE =
+  process.env.REACT_APP_API_URL ||
+  "https://student-appointment-scheduler-mern.onrender.com";
+
 export default function ResetPassword() {
+  const navigate = useNavigate();
+  const { token = "" } = useParams();
+
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
@@ -10,22 +18,25 @@ export default function ResetPassword() {
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(null);
 
-  const API_BASE =
-    process.env.REACT_APP_API_URL ||
-    "https://student-appointment-scheduler-mern.onrender.com";
-
-  // token viene del URL: /reset-password/:token
-  const token = window.location.pathname.split("/reset-password/")[1] || "";
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setMsg("");
 
-    if (!password.trim()) return setError("Please enter a new password.");
-    if (password.length < 6) return setError("Password must be at least 6 characters.");
+    if (!password.trim()) {
+      setError("Please enter a new password.");
+      return;
+    }
 
-    if (!token) return setError("Missing reset token.");
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (!token) {
+      setError("Missing reset token.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -45,8 +56,7 @@ export default function ResetPassword() {
       }
 
       setMsg("Password updated successfully! Redirecting to Login...");
-      setCountdown(7); // ✅ más tiempo (7 segundos)
-
+      setCountdown(7);
     } catch (err) {
       setError("Network error. Please try again.");
     } finally {
@@ -56,17 +66,18 @@ export default function ResetPassword() {
 
   useEffect(() => {
     if (countdown === null) return;
+
     if (countdown === 0) {
-      window.location.href = "/login";
+      navigate("/login", { replace: true });
       return;
     }
+
     const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(t);
-  }, [countdown]);
+  }, [countdown, navigate]);
 
   return (
     <div className="auth-page">
-      {/* Left panel */}
       <section className="auth-brand" aria-label="Institutional branding">
         <div className="brand-top">
           <div className="brand-logo" aria-hidden="true">
@@ -97,12 +108,12 @@ export default function ResetPassword() {
         <div className="brand-footer">
           <small>© {new Date().getFullYear()} Student Services</small>
         </div>
+
         <div className="brand-image-bottom">
-            <img src={resetImg} alt="Reset password visual" />
+          <img src={resetImg} alt="Reset password visual" />
         </div>
       </section>
 
-      {/* Right card */}
       <main className="auth-main">
         <div className="auth-card" role="region" aria-label="Reset password form">
           <header className="auth-header">
@@ -155,15 +166,24 @@ export default function ResetPassword() {
           </form>
 
           <p className="auth-bottom">
-            Back to <a className="link" href="/login">Login</a>
+            Back to{" "}
+            <Link className="link" to="/login">
+              Login
+            </Link>
           </p>
 
           <footer className="auth-legal">
-            <a className="link" href="/support">Contact support</a>
+            <Link className="link" to="/support">
+              Contact support
+            </Link>
             <span className="sep">•</span>
-            <a className="link" href="/privacy">Privacy</a>
+            <Link className="link" to="/privacy">
+              Privacy
+            </Link>
             <span className="sep">•</span>
-            <a className="link" href="/terms">Terms</a>
+            <Link className="link" to="/terms">
+              Terms
+            </Link>
           </footer>
         </div>
       </main>

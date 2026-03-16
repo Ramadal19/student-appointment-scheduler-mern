@@ -1,25 +1,51 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_BASE =
+  process.env.REACT_APP_API_URL ||
+  "https://student-appointment-scheduler-mern.onrender.com";
+
 export default function Schedule() {
   const navigate = useNavigate();
   const [advisors, setAdvisors] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const API_BASE =
-    process.env.REACT_APP_API_URL ||
-    "https://student-appointment-scheduler-mern.onrender.com";
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    let alive = true;
+
     (async () => {
-      const res = await fetch(`${API_BASE}/api/advisors`, {
-        credentials: "include",
-      });
-      const data = await res.json();
-      setAdvisors(data); // tu backend devuelve array directo
-      setLoading(false);
+      try {
+        setError("");
+
+        const res = await fetch(`${API_BASE}/api/advisors`, {
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to load advisors.");
+        }
+
+        const data = await res.json();
+        if (alive) {
+          setAdvisors(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        if (alive) {
+          setAdvisors([]);
+          setError(err.message || "Could not load advisors.");
+        }
+      } finally {
+        if (alive) {
+          setLoading(false);
+        }
+      }
     })();
-  }, [API_BASE]);
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   if (loading) return <p>Loading advisors...</p>;
 
@@ -27,7 +53,9 @@ export default function Schedule() {
     <div>
       <h2>Request an Appointment</h2>
 
-      {advisors.length === 0 ? (
+      {error ? <p>{error}</p> : null}
+
+      {!error && advisors.length === 0 ? (
         <p>No advisors available.</p>
       ) : (
         <ul>

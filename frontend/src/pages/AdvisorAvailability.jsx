@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+const API_BASE =
+  process.env.REACT_APP_API_URL ||
+  "https://student-appointment-scheduler-mern.onrender.com";
+
 export default function AdvisorAvailability() {
   const { advisorId } = useParams();
   const navigate = useNavigate();
-
-  const API_BASE =
-    process.env.REACT_APP_API_URL ||
-    "https://student-appointment-scheduler-mern.onrender.com";
 
   const [slots, setSlots] = useState([]);
   const [topics, setTopics] = useState([]);
@@ -21,8 +21,6 @@ export default function AdvisorAvailability() {
 
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
-
-  // ✅ Obtener user logueado (studentId)
   const [studentId, setStudentId] = useState("");
 
   const selectedSlot = useMemo(
@@ -33,30 +31,32 @@ export default function AdvisorAvailability() {
   useEffect(() => {
     if (!advisorId) return;
 
+    let alive = true;
+
     (async () => {
       try {
         setLoading(true);
         setError("");
         setMsg("");
 
-        // 0) /auth/me (para studentId)
         try {
           const meRes = await fetch(`${API_BASE}/auth/me`, {
             credentials: "include",
           });
+
           if (meRes.ok) {
             const me = await meRes.json();
             const id = me?.user?._id || me?._id || "";
-            if (id) setStudentId(id);
+            if (alive && id) setStudentId(id);
           }
-        } catch (_) {
-          // ignore
-        }
+        } catch (_) {}
 
-        // 1) Availability del advisor
-        const resSlots = await fetch(`${API_BASE}/api/availability?advisorId=${advisorId}`, {
+        const resSlots = await fetch(
+          `${API_BASE}/api/availability?advisorId=${advisorId}`,
+          {
             credentials: "include",
-        });
+          }
+        );
 
         if (!resSlots.ok) {
           const t = await resSlots.text();
@@ -71,10 +71,11 @@ export default function AdvisorAvailability() {
           : dataSlots.slots || [];
         const availableSlots = listSlots.filter((s) => !s.isBooked);
 
-        setSlots(availableSlots);
-        setSelectedSlotId(availableSlots[0]?._id || "");
+        if (alive) {
+          setSlots(availableSlots);
+          setSelectedSlotId(availableSlots[0]?._id || "");
+        }
 
-        // 2) Topics
         const resTopics = await fetch(`${API_BASE}/api/topics`, {
           credentials: "include",
         });
@@ -84,31 +85,51 @@ export default function AdvisorAvailability() {
           const listTopics = Array.isArray(dataTopics)
             ? dataTopics
             : dataTopics.topics || [];
-          setTopics(listTopics);
-          setSelectedTopicId(listTopics[0]?._id || "");
+
+          if (alive) {
+            setTopics(listTopics);
+            setSelectedTopicId(listTopics[0]?._id || "");
+          }
         } else {
-          setTopics([]);
-          setSelectedTopicId("");
+          if (alive) {
+            setTopics([]);
+            setSelectedTopicId("");
+          }
         }
       } catch (e) {
-        setError(e.message || "Error loading availability.");
+        if (alive) {
+          setError(e.message || "Error loading availability.");
+        }
       } finally {
-        setLoading(false);
+        if (alive) {
+          setLoading(false);
+        }
       }
     })();
-  }, [API_BASE, advisorId]);
+
+    return () => {
+      alive = false;
+    };
+  }, [advisorId]);
 
   const handleRequestAppointment = async () => {
     setError("");
     setMsg("");
 
     if (!studentId) {
-      return setError(
-        "No studentId found. Ensure the user is logged in and /auth/me returns the user id."
-      );
+      setError("Your session could not be verified. Please sign in again.");
+      return;
     }
-    if (!selectedSlot) return setError("Please select a time slot.");
-    if (!selectedTopicId) return setError("Please select a topic.");
+
+    if (!selectedSlot) {
+      setError("Please select a time slot.");
+      return;
+    }
+
+    if (!selectedTopicId) {
+      setError("Please select a topic.");
+      return;
+    }
 
     try {
       setBooking(true);
@@ -121,7 +142,6 @@ export default function AdvisorAvailability() {
         notes: notes || "",
       };
 
-      // ✅ ENDPOINT CORRECTO (porque en server.js montaste /api/appointments)
       const res = await fetch(`${API_BASE}/api/appointments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,7 +156,10 @@ export default function AdvisorAvailability() {
       }
 
       setMsg("✅ Appointment created successfully!");
-      // navigate("/student-dashboard");
+
+      setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 1200);
     } catch (e) {
       setError(e.message || "Booking error.");
     } finally {
@@ -205,14 +228,13 @@ export default function AdvisorAvailability() {
                   gap: 12,
                 }}
               >
-                <label
-                  style={{ display: "flex", gap: 10, alignItems: "center" }}
-                >
+                <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   <input
                     type="radio"
                     name="slot"
                     checked={selectedSlotId === s._id}
                     onChange={() => setSelectedSlotId(s._id)}
+                    disabled={booking}
                   />
                   <span>
                     <b>{new Date(s.startTime).toLocaleString()}</b> →{" "}
@@ -230,13 +252,14 @@ export default function AdvisorAvailability() {
 
             {topics.length === 0 ? (
               <p style={{ opacity: 0.8 }}>
-                No topics loaded (endpoint /api/topics may be missing).
+                No topics loaded.
               </p>
             ) : (
               <select
                 value={selectedTopicId}
                 onChange={(e) => setSelectedTopicId(e.target.value)}
                 style={{ padding: 8, minWidth: 260 }}
+                disabled={booking}
               >
                 {topics.map((t) => (
                   <option key={t._id} value={t._id}>
@@ -257,6 +280,7 @@ export default function AdvisorAvailability() {
               rows={3}
               style={{ width: "100%", maxWidth: 520, padding: 8 }}
               placeholder="Add any extra details for the advisor..."
+              disabled={booking}
             />
           </div>
 

@@ -7,8 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import ProtectedRoute from "./components/ProtectedRoute";
-import DashboardV2 from "./pages/DashboardV2";
-import StudentDashboard from "./pages/Dashboard";
+import Dashboard from "./pages/Dashboard";
 import Schedule from "./pages/Schedule";
 import AdvisorAvailability from "./pages/AdvisorAvailability";
 
@@ -36,11 +35,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/student-dashboard"  element={
-          <ProtectedRoute>
-            <StudentDashboard />
-          </ProtectedRoute>
-        }/>
+        
         <Route path="/schedule" element={
           <ProtectedRoute>
             <Schedule />
@@ -58,7 +53,7 @@ export default function App() {
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <DashboardV2 />
+              <Dashboard />
             </ProtectedRoute>
           }
         />

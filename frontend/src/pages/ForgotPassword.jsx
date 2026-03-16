@@ -1,5 +1,10 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import forgotImg from "../assets/forg-bg.png";
+
+const API_BASE =
+  process.env.REACT_APP_API_URL ||
+  "https://student-appointment-scheduler-mern.onrender.com";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -7,10 +12,6 @@ export default function ForgotPassword() {
   const [msg, setMsg] = useState("");
   const [resetUrl, setResetUrl] = useState("");
   const [error, setError] = useState("");
-
-  const API_BASE =
-    process.env.REACT_APP_API_URL ||
-    "https://student-appointment-scheduler-mern.onrender.com";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,11 +41,11 @@ export default function ForgotPassword() {
         return;
       }
 
-      // ✅ ya sin “testing mode” si lo cambiaste en backend
       setMsg(data?.message || "Reset link generated successfully.");
 
-      // ✅ modo básico: backend devuelve resetUrl
-      if (data?.resetUrl) setResetUrl(data.resetUrl);
+      if (data?.resetUrl) {
+        setResetUrl(data.resetUrl);
+      }
     } catch (err) {
       setError("Network error. Please try again.");
     } finally {
@@ -54,7 +55,6 @@ export default function ForgotPassword() {
 
   return (
     <div className="auth-page">
-      {/* Left panel */}
       <section className="auth-brand" aria-label="Institutional branding">
         <div className="brand-top">
           <div className="brand-logo" aria-hidden="true">
@@ -85,12 +85,12 @@ export default function ForgotPassword() {
         <div className="brand-footer">
           <small>© {new Date().getFullYear()} Student Services</small>
         </div>
+
         <div className="brand-image-bottom">
-            <img src={forgotImg} alt="Forgot password visual" />
+          <img src={forgotImg} alt="Forgot password visual" />
         </div>
       </section>
 
-      {/* Right card */}
       <main className="auth-main">
         <div className="auth-card" role="region" aria-label="Forgot password form">
           <header className="auth-header">
@@ -124,20 +124,21 @@ export default function ForgotPassword() {
             </label>
 
             <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading || !!resetUrl}
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading || !!resetUrl}
             >
-            {loading ? "Sending..." : "Send Reset Link"}
+              {loading ? "Sending..." : "Send Reset Link"}
             </button>
           </form>
 
-          {/* ✅ Link enmascarado en botón */}
           {resetUrl ? (
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={() => (window.location.href = resetUrl)}
+              onClick={() => {
+                window.location.href = resetUrl;
+              }}
               disabled={loading}
               style={{ marginTop: 12 }}
             >
@@ -146,15 +147,24 @@ export default function ForgotPassword() {
           ) : null}
 
           <p className="auth-bottom">
-            Back to <a className="link" href="/login">Login</a>
+            Back to{" "}
+            <Link className="link" to="/login">
+              Login
+            </Link>
           </p>
 
           <footer className="auth-legal">
-            <a className="link" href="/support">Contact support</a>
+            <Link className="link" to="/support">
+              Contact support
+            </Link>
             <span className="sep">•</span>
-            <a className="link" href="/privacy">Privacy</a>
+            <Link className="link" to="/privacy">
+              Privacy
+            </Link>
             <span className="sep">•</span>
-            <a className="link" href="/terms">Terms</a>
+            <Link className="link" to="/terms">
+              Terms
+            </Link>
           </footer>
         </div>
       </main>

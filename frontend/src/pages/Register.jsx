@@ -1,7 +1,14 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import registerImg from "../assets/reg-bg.png";
 
+const API_BASE =
+  process.env.REACT_APP_API_URL ||
+  "https://student-appointment-scheduler-mern.onrender.com";
+
 export default function Register() {
+  const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
 
@@ -14,29 +21,31 @@ export default function Register() {
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ Cambia esto según tu env (local / prod)
-  const API_BASE =
-    process.env.REACT_APP_API_URL ||
-    "https://student-appointment-scheduler-mern.onrender.com";
-
   const emailOk = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
   const handleEmailRegister = async (e) => {
     e.preventDefault();
     setError("");
 
-    // ✅ Validación SOLO al enviar (botón siempre activo)
     if (!name.trim()) return setError("Please enter your name.");
-    if (name.trim().length < 2) return setError("Name must be at least 2 characters.");
+    if (name.trim().length < 2) {
+      return setError("Name must be at least 2 characters.");
+    }
 
     if (!email.trim()) return setError("Please enter your email.");
     if (!emailOk(email)) return setError("Please enter a valid email address.");
 
     if (!password.trim()) return setError("Please enter a password.");
-    if (password.length < 6) return setError("Password must be at least 6 characters.");
+    if (password.length < 6) {
+      return setError("Password must be at least 6 characters.");
+    }
 
-    if (!confirmPassword.trim()) return setError("Please confirm your password.");
-    if (password !== confirmPassword) return setError("Passwords do not match.");
+    if (!confirmPassword.trim()) {
+      return setError("Please confirm your password.");
+    }
+    if (password !== confirmPassword) {
+      return setError("Passwords do not match.");
+    }
 
     try {
       setLoadingEmail(true);
@@ -45,7 +54,11 @@ export default function Register() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+        }),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -57,10 +70,7 @@ export default function Register() {
         throw new Error(data?.message || "Registration failed.");
       }
 
-      // ✅ Si registró ok
-      window.location.href = "/dashboard";
-      // Alternativa:
-      // window.location.href = "/login";
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.message || "Registration failed.");
     } finally {
@@ -70,7 +80,6 @@ export default function Register() {
 
   return (
     <div className="auth-page">
-      {/* Left: Institutional brand panel (mismo look que Login) */}
       <section className="auth-brand" aria-label="Institutional branding">
         <div className="brand-top">
           <div className="brand-logo" aria-hidden="true">
@@ -101,13 +110,12 @@ export default function Register() {
         <div className="brand-footer">
           <small>© {new Date().getFullYear()} Student Services</small>
         </div>
-        <div className="brand-image-bottom">
-            <img src={registerImg} alt="Register visual" />
-        </div>
 
+        <div className="brand-image-bottom">
+          <img src={registerImg} alt="Register visual" />
+        </div>
       </section>
 
-      {/* Right: Register card */}
       <main className="auth-main">
         <div className="auth-card" role="region" aria-label="Create account form">
           <header className="auth-header">
@@ -120,10 +128,6 @@ export default function Register() {
               {error}
             </div>
           ) : null}
-
-          {/* ✅ Quitamos GitHub en Register */}
-          {/* <button className="btn btn-github">...</button>
-              <div className="divider"><span>or</span></div> */}
 
           <form onSubmit={handleEmailRegister} className="auth-form">
             <label className="field">
@@ -196,22 +200,34 @@ export default function Register() {
               </div>
             </label>
 
-            {/* ✅ Botón siempre activo (solo se desactiva mientras carga) */}
-            <button type="submit" className="btn btn-primary" disabled={loadingEmail}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loadingEmail}
+            >
               {loadingEmail ? "Creating..." : "Create account"}
             </button>
           </form>
 
           <p className="auth-bottom">
-            Already have an account? <a className="link" href="/login">Sign in</a>
+            Already have an account?{" "}
+            <Link className="link" to="/login">
+              Sign in
+            </Link>
           </p>
 
           <footer className="auth-legal">
-            <a className="link" href="/support">Contact support</a>
+            <Link className="link" to="/support">
+              Contact support
+            </Link>
             <span className="sep">•</span>
-            <a className="link" href="/privacy">Privacy</a>
+            <Link className="link" to="/privacy">
+              Privacy
+            </Link>
             <span className="sep">•</span>
-            <a className="link" href="/terms">Terms</a>
+            <Link className="link" to="/terms">
+              Terms
+            </Link>
           </footer>
         </div>
       </main>

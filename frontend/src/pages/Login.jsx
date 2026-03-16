@@ -1,7 +1,14 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import loginImg from "../assets/login-bg.png";
 
+const API_BASE =
+  process.env.REACT_APP_API_URL ||
+  "https://student-appointment-scheduler-mern.onrender.com";
+
 export default function Login() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -12,17 +19,9 @@ export default function Login() {
   const [loadingGitHub, setLoadingGitHub] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ Cambia esto según tu env (local / prod)
-  const API_BASE =
-    process.env.REACT_APP_API_URL ||
-    "https://student-appointment-scheduler-mern.onrender.com";
-
   const handleGitHub = () => {
     setError("");
     setLoadingGitHub(true);
-
-    // Tu backend debería exponer algo como:
-    // GET /auth/github  -> redirect a GitHub
     window.location.href = `${API_BASE}/auth/github`;
   };
 
@@ -38,33 +37,28 @@ export default function Login() {
     try {
       setLoadingEmail(true);
 
-      // Tu backend debería exponer algo como:
-      // POST /auth/login { email, password, remember }
       const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // importante si usas cookies/sessions
+        credentials: "include",
         body: JSON.stringify({ email, password, remember }),
       });
 
       if (!res.ok) {
-  const data = await res.json().catch(() => ({}));
+        const data = await res.json().catch(() => ({}));
 
-  // Si el backend ya manda codes, los usamos
-  if (data?.code === "USER_NOT_FOUND" || res.status === 404) {
-    throw new Error("No account found for this email. Please create one..");
-  }
+        if (data?.code === "USER_NOT_FOUND" || res.status === 404) {
+          throw new Error("No account found for this email. Please create one.");
+        }
 
-  if (data?.code === "BAD_PASSWORD" || res.status === 401) {
-    throw new Error("Incorrect password. Please try again");
-  }
+        if (data?.code === "BAD_PASSWORD" || res.status === 401) {
+          throw new Error("Incorrect password. Please try again.");
+        }
 
-  // fallback: muestra lo que venga del backend
-  throw new Error(data?.message || "Login failed.");
-}
+        throw new Error(data?.message || "Login failed.");
+      }
 
-      // ✅ Si el login fue ok, mandas al dashboard
-      window.location.href = "/dashboard";
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(err.message || "Login failed.");
     } finally {
@@ -74,7 +68,6 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      {/* Left: Institutional brand panel */}
       <section className="auth-brand" aria-label="Institutional branding">
         <div className="brand-top">
           <div className="brand-logo" aria-hidden="true">
@@ -106,13 +99,11 @@ export default function Login() {
           <small>© {new Date().getFullYear()} Student Services</small>
         </div>
 
-        {/* ✅ Imagen pequeña abajo */}
         <div className="brand-image-bottom">
           <img src={loginImg} alt="Login visual" />
         </div>
       </section>
 
-      {/* Right: Login card */}
       <main className="auth-main">
         <div className="auth-card" role="region" aria-label="Sign in form">
           <header className="auth-header">
@@ -186,9 +177,9 @@ export default function Login() {
                 Remember me
               </label>
 
-              <a className="link" href="/forgot-password">
+              <Link className="link" to="/forgot-password">
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             <button
@@ -201,15 +192,24 @@ export default function Login() {
           </form>
 
           <p className="auth-bottom">
-            Don&apos;t have an account? <a className="link" href="/register">Create one</a>
+            Don&apos;t have an account?{" "}
+            <Link className="link" to="/register">
+              Create one
+            </Link>
           </p>
 
           <footer className="auth-legal">
-            <a className="link" href="/support">Contact support</a>
+            <Link className="link" to="/support">
+              Contact support
+            </Link>
             <span className="sep">•</span>
-            <a className="link" href="/privacy">Privacy</a>
+            <Link className="link" to="/privacy">
+              Privacy
+            </Link>
             <span className="sep">•</span>
-            <a className="link" href="/terms">Terms</a>
+            <Link className="link" to="/terms">
+              Terms
+            </Link>
           </footer>
         </div>
       </main>

@@ -1,5 +1,6 @@
 // src/api.js
-const API_BASE =
+
+export const API_BASE =
   process.env.REACT_APP_API_URL ||
   "https://student-appointment-scheduler-mern.onrender.com";
 
@@ -14,6 +15,7 @@ export async function apiFetch(path, options = {}) {
   });
 
   const contentType = res.headers.get("content-type") || "";
+
   const data = contentType.includes("application/json")
     ? await res.json()
     : { message: await res.text() };
@@ -21,5 +23,6 @@ export async function apiFetch(path, options = {}) {
   if (!res.ok) {
     throw new Error(data?.message || `HTTP ${res.status}`);
   }
+
   return data;
 }
