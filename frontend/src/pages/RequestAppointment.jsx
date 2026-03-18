@@ -45,6 +45,18 @@ function ConfirmAppointmentModal({
 }) {
   if (!visible || !appointment) return null;
 
+  const advisorName =
+    appointment.advisorName ||
+    appointment.advisor?.name ||
+    appointment.advisor ||
+    "Not assigned";
+
+  const appointmentTime = appointment.time || "EMPTY TIME";
+  const appointmentDate = appointment.date || "EMPTY DATE";
+  const appointmentTopic = appointment.topic || "EMPTY TOPIC";
+
+  console.log("ConfirmAppointmentModal appointment:", appointment);
+
   return (
     <div className="modalOverlay">
       <div className="appointmentCard">
@@ -53,10 +65,28 @@ function ConfirmAppointmentModal({
         <h2>Confirm Appointment</h2>
 
         <div className="appointmentSummary">
-          <div className="appointmentTime">{appointment.time}</div>
-          <div className="appointmentAdvisor">{appointment.advisor}</div>
-          <div className="appointmentDate">{appointment.date}</div>
-          <div className="appointmentTopic">Topic: {appointment.topic}</div>
+          <div
+            className="appointmentTime"
+            style={{ color: "#000", fontWeight: 700 }}
+          >
+            Time: {appointmentTime}
+          </div>
+
+          <div
+            className="appointmentAdvisor"
+            style={{ color: "#000", fontWeight: 700 }}
+          >
+            Advisor: {advisorName}
+          </div>
+
+          <div className="appointmentDate" style={{ color: "#000" }}>
+            Date: {appointmentDate}
+          </div>
+
+          <div className="appointmentTopic" style={{ color: "#000" }}>
+            Topic: {appointmentTopic}
+          </div>
+
         </div>
 
         <div className="modalActions">
@@ -121,7 +151,7 @@ export default function RequestAppointment() {
         const list = Array.isArray(data) ? data : data.advisors || [];
 
         console.log("ADVISORS FROM API:", list);
-        
+
         if (alive) setAdvisors(list);
       } catch (err) {
         if (alive) {
@@ -259,48 +289,58 @@ export default function RequestAppointment() {
   );
 
   function openConfirmModal() {
-  setError("");
-  setSuccess("");
+    setError("");
+    setSuccess("");
 
-  if (!selectedAdvisor || !selectedSlotId || !selectedTopicId) {
-    setError("Please select an advisor, a time block, and a topic.");
-    return;
-  }
+    if (!selectedAdvisor || !selectedSlotId || !selectedTopicId) {
+      setError("Please select an advisor, a time block, and a topic.");
+      return;
+    }
 
-  const advisor = advisors.find(
-    (a) => String(a._id || a.id) === String(selectedAdvisor)
-  );
+    const advisor = advisors.find(
+      (a) => String(a._id || a.id) === String(selectedAdvisor)
+    );
 
-  const topic = topics.find(
-    (t) => String(t._id || t.id) === String(selectedTopicId)
-  );
+    const topic = topics.find(
+      (t) => String(t._id || t.id) === String(selectedTopicId)
+    );
 
-  if (!selectedSlot || !advisor || !topic) {
-    console.log("selectedAdvisor:", selectedAdvisor);
+    if (!selectedSlot || !advisor || !topic) {
+      console.log("selectedAdvisor:", selectedAdvisor);
+      console.log("advisor found:", advisor);
+      console.log("all advisors:", advisors);
+      console.log("selectedTopicId:", selectedTopicId);
+      console.log("topic found:", topic);
+      setError("Could not prepare appointment summary.");
+      return;
+    }
+
+    const advisorName =
+      advisor.name ||
+      advisor.fullName ||
+      advisor.advisorName ||
+      advisor.email ||
+      "Advisor";
+
+    console.log("selectedSlot:", selectedSlot);
     console.log("advisor found:", advisor);
-    console.log("all advisors:", advisors);
-    console.log("selectedTopicId:", selectedTopicId);
     console.log("topic found:", topic);
-    setError("Could not prepare appointment summary.");
-    return;
+    console.log("appointment preview:", {
+      advisor: advisorName,
+      date: getDateLabel(selectedSlot.startTime),
+      time: getTimeLabel(selectedSlot.startTime, selectedSlot.endTime),
+      topic: topic.title || topic.name || "Topic",
+    });
+
+    setAppointmentPreview({
+      advisor: advisorName,
+      date: getDateLabel(selectedSlot.startTime),
+      time: getTimeLabel(selectedSlot.startTime, selectedSlot.endTime),
+      topic: topic.title || topic.name || "Topic",
+    });
+
+    setConfirmVisible(true);
   }
-
-  const advisorName =
-    advisor.name ||
-    advisor.fullName ||
-    advisor.advisorName ||
-    advisor.email ||
-    "Advisor";
-
-  setAppointmentPreview({
-    advisor: advisorName,
-    date: getDateLabel(selectedSlot.startTime),
-    time: getTimeLabel(selectedSlot.startTime, selectedSlot.endTime),
-    topic: topic.title || topic.name || "Topic",
-  });
-
-  setConfirmVisible(true);
-}
 
   async function confirmAppointment() {
     setError("");
