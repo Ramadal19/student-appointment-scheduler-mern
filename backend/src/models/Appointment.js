@@ -29,10 +29,10 @@ const appointmentSchema = new mongoose.Schema(
     endTime: { type: Date, required: true },
     status: {
       type: String,
-      enum: ["requested", "confirmed", "canceled", "completed"],
-      default: "requested",
+      enum: ["confirmed", "canceled", "completed"],
+      default: "confirmed",
       index: true,
-    },
+  },
     notes: { type: String, default: "", trim: true },
   },
   { timestamps: true }

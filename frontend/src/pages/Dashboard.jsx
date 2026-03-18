@@ -8,16 +8,54 @@ const API_BASE =
   process.env.REACT_APP_API_URL ||
   "http://localhost:5000";
 
+function formatDateRange(start, end) {
+  if (!start) return "No date";
+
+  const startDate = new Date(start);
+  const endDate = end ? new Date(end) : null;
+
+  const startText = startDate.toLocaleString();
+  const endText = endDate
+    ? endDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : "";
+
+  return endText ? `${startText} - ${endText}` : startText;
+}
+
+function getAdvisorName(appointment) {
+  return (
+    appointment.advisorId?.name ||
+    appointment.advisor?.name ||
+    appointment.availabilityId?.advisorId?.name ||
+    appointment.availability?.advisor?.name ||
+    appointment.advisorName ||
+    "No advisor"
+  );
+}
+
+function getTopicLabel(appointment) {
+  return (
+    appointment.topicId?.title ||
+    appointment.topicId?.name ||
+    appointment.topic?.title ||
+    appointment.topic?.name ||
+    "No topic"
+  );
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
   const [active, setActive] = useState("Dashboard");
   const [appointments, setAppointments] = useState([]);
-  const [search, setSearch] = useState("");
+
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const [status, setStatus] = useState("Checking session...");
   const [user, setUser] = useState(null);
   const [sessionOk, setSessionOk] = useState(false);
+  const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [deleteLoadingId, setDeleteLoadingId] = useState(null);
 
   useEffect(() => {
     fetch(`${API_BASE}/auth/me`, { credentials: "include" })
@@ -52,36 +90,93 @@ export default function Dashboard() {
   useEffect(() => {
     if (!sessionOk) return;
 
+    setLoadingAppointments(true);
+
     fetch(`${API_BASE}/api/appointments/my`, { credentials: "include" })
       .then(async (res) => {
         if (!res.ok) throw new Error("Failed to load appointments");
         return res.json();
       })
       .then((data) => setAppointments(Array.isArray(data) ? data : []))
-      .catch(() => setAppointments([]));
+      .catch(() => setAppointments([]))
+      .finally(() => setLoadingAppointments(false));
   }, [sessionOk]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return appointments;
+  const normalizedAppointments = useMemo(() => {
+    return appointments.map((a) => {
+      const id = a._id || a.id || "";
+      const startTime = a.startTime || a.availabilityId?.startTime || a.availability?.startTime || null;
+      const endTime = a.endTime || a.availabilityId?.endTime || a.availability?.endTime || null;
+      const advisor = getAdvisorName(a);
+      const topic = getTopicLabel(a);
+      const status = String(a.status || "confirmed").toLowerCase();
 
-    return appointments.filter((a) => {
-      const id = String(a.id ?? a._id ?? "").toLowerCase();
-      const date = String(a.date ?? a.startTime ?? "").toLowerCase();
-      const st = String(a.status ?? "").toLowerCase();
-      return id.includes(q) || date.includes(q) || st.includes(q);
+      return {
+        raw: a,
+        id,
+        startTime,
+        endTime,
+        advisor,
+        topic,
+        status,
+        dateLabel: formatDateRange(startTime, endTime),
+      };
     });
-  }, [appointments, search]);
+  }, [appointments]);
 
-  const total = filtered.length;
-  const confirmed = filtered.filter(
-    (a) => String(a.status).toLowerCase() === "confirmed"
+  const filtered = useMemo(() => {
+    if (statusFilter === "all") return normalizedAppointments;
+
+    return normalizedAppointments.filter(
+      (a) => a.status === statusFilter
+    );
+  }, [normalizedAppointments, statusFilter]);
+
+  const total = normalizedAppointments.length;
+  const confirmed = normalizedAppointments.filter(
+    (a) => a.status === "confirmed"
   ).length;
-  const pending = filtered.filter(
-    (a) =>
-      String(a.status).toLowerCase() === "pending" ||
-      String(a.status).toLowerCase() === "requested"
-  ).length;
+
+  const upcomingAppointments = useMemo(() => {
+    const now = new Date();
+
+    return [...normalizedAppointments]
+      .filter((a) => a.startTime && new Date(a.startTime) >= now)
+      .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+      .slice(0, 5);
+  }, [normalizedAppointments]);
+
+  const handleDelete = async (appointmentId) => {
+  const ok = window.confirm(
+    "Are you sure you want to delete this appointment?"
+  );
+  if (!ok) return;
+
+  try {
+    setDeleteLoadingId(appointmentId);
+
+    const res = await fetch(`${API_BASE}/api/appointments/${appointmentId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(
+        data.error || data.message || "Failed to delete appointment"
+      );
+    }
+
+    setAppointments((prev) =>
+      prev.filter((a) => (a._id || a.id) !== appointmentId)
+    );
+  } catch (err) {
+    alert(err.message || "Could not delete appointment");
+  } finally {
+    setDeleteLoadingId(null);
+  }
+};
 
   const onLogout = async () => {
     try {
@@ -113,82 +208,101 @@ export default function Dashboard() {
         {active === "Dashboard" && (
           <div className="pageCard">
             <h1>Student Appointment Dashboard</h1>
-
             <p className="subtitle">{status}</p>
 
-            <div className="searchRow">
-              <span className="searchIcon">🔎</span>
-              <input
-                className="searchInput"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search..."
-                disabled={!sessionOk}
-              />
+            <div className="filterRow">
+              <button
+                className={statusFilter === "all" ? "filterBtn active" : "filterBtn"}
+                onClick={() => setStatusFilter("all")}
+              >
+                All
+              </button>
+              <button
+                className={statusFilter === "confirmed" ? "filterBtn active" : "filterBtn"}
+                onClick={() => setStatusFilter("confirmed")}
+              >
+                Confirmed
+              </button>
             </div>
 
             <div className="cards">
               <div className="statCard purple">
                 <div className="statTitle">Total Appointments</div>
-                <div className="statSub">All</div>
+                <div className="statSub">All records</div>
                 <div className="statValue">{total}</div>
-                <div className="statFoot">Updated just now</div>
+                <div className="statFoot">Loaded from your account</div>
               </div>
 
               <div className="statCard teal">
                 <div className="statTitle">Confirmed</div>
-                <div className="statSub">OK</div>
+                <div className="statSub">Scheduled meetings</div>
                 <div className="statValue">{confirmed}</div>
                 <div className="statFoot">Ready to attend</div>
-              </div>
-
-              <div className="statCard yellow">
-                <div className="statTitle">Pending</div>
-                <div className="statSub">Wait</div>
-                <div className="statValue">{pending}</div>
-                <div className="statFoot">Needs confirmation</div>
               </div>
             </div>
 
             <h2 className="sectionTitle">Upcoming Appointments</h2>
+            <div className="tableCard" style={{ marginBottom: "20px" }}>
+              {upcomingAppointments.length > 0 ? (
+                <ul className="upcomingList">
+                  {upcomingAppointments.map((a) => (
+                    <li key={a.id} className="upcomingItem">
+                      <strong>{a.topic}</strong> with {a.advisor}
+                      <br />
+                      <span>{a.dateLabel}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="empty">No upcoming appointments.</div>
+              )}
+            </div>
+
+            <h2 className="sectionTitle">Appointments Table</h2>
 
             <div className="tableCard">
               <div className="tableTop">
-                <div className="itemsCount">{filtered.length} items</div>
+                <div className="itemsCount">
+                  {loadingAppointments ? "Loading..." : `${filtered.length} items`}
+                </div>
               </div>
 
               <table className="table">
                 <thead>
                   <tr>
                     <th style={{ width: "120px" }}>ID</th>
-                    <th style={{ width: "220px" }}>Date</th>
+                    <th style={{ width: "240px" }}>Date</th>
+                    <th>Advisor</th>
+                    <th>Topic</th>
                     <th>Status</th>
+                    <th style={{ width: "120px" }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((a) => {
-                    const st = String(a.status || "").toLowerCase();
-                    const id = a.id ?? a._id ?? "";
-                    const date = a.date ?? a.startTime ?? "";
+                  {filtered.map((a) => (
+                    <tr key={a.id}>
+                      <td>{a.id ? a.id.slice(-6) : "N/A"}</td>
+                      <td>{a.dateLabel}</td>
+                      <td>{a.advisor}</td>
+                      <td>{a.topic}</td>
+                      <td>
+                        <span className={`pill ${a.status}`}>{a.status}</span>
+                      </td>
+                      <td>
+                        <button
+                          className="deleteBtn"
+                          onClick={() => handleDelete(a.id)}
+                          disabled={deleteLoadingId === a.id}
+                        >
+                          {deleteLoadingId === a.id ? "Deleting..." : "Delete"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
 
-                    return (
-                      <tr key={id || `${date}-${st}`}>
-                        <td>{id}</td>
-                        <td>
-                          {date
-                            ? new Date(date).toLocaleString()
-                            : "No date"}
-                        </td>
-                        <td>
-                          <span className={`pill ${st}`}>{st || "unknown"}</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {filtered.length === 0 && (
+                  {!loadingAppointments && filtered.length === 0 && (
                     <tr>
-                      <td colSpan="3" className="empty">
+                      <td colSpan="6" className="empty">
                         No appointments found.
                       </td>
                     </tr>

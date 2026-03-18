@@ -63,12 +63,13 @@ router.get("/", requireAuth, requireRole("admin", "advisor"), async (req, res) =
 
 /**
  * GET /appointments/my
- * Mis citas del usuario autenticado
  */
 router.get("/my", requireAuth, async (req, res) => {
   try {
     const appts = await Appointment.find({ studentId: req.user._id })
-      .populate(appointmentPopulate)
+      .populate("advisorId", "name email")
+      .populate("topicId", "title name")
+      .populate("availabilityId")
       .sort({ startTime: 1 });
 
     return res.json(appts);
@@ -256,5 +257,62 @@ router.patch("/:id/cancel", requireAuth, async (req, res) => {
     session.endSession();
   }
 });
+/**
+ * DELETE /appointments/:id
+ * Student, advisor 
+ */
+router.delete("/:id", requireAuth, async (req, res) => {
+  const { id } = req.params;
+  if (!isValidId(id)) {
+    return res.status(400).json({ error: "Invalid appointment id" });
+  }
 
+  const session = await mongoose.startSession();
+
+  try {
+    await session.withTransaction(async () => {
+      const appt = await Appointment.findById(id).session(session);
+
+      if (!appt) {
+        throw Object.assign(new Error("APPT_NOT_FOUND"), { statusCode: 404 });
+      }
+
+      const isOwner = String(appt.studentId) === String(req.user._id);
+      const isAdvisor = String(appt.advisorId) === String(req.user._id);
+      const isAdmin = req.user.role === "admin";
+
+      if (!isOwner && !isAdvisor && !isAdmin) {
+        throw Object.assign(new Error("FORBIDDEN"), { statusCode: 403 });
+      }
+
+      const shouldRelease =
+        appt.status === "confirmed" ||
+        appt.status === "requested";
+
+      if (shouldRelease && appt.availabilityId) {
+        await Availability.updateOne(
+          { _id: appt.availabilityId },
+          { $set: { isBooked: false } },
+          { session }
+        );
+      }
+
+      await Appointment.deleteOne({ _id: appt._id }, { session });
+    });
+
+    return res.json({ message: "Appointment deleted successfully", deletedId: id });
+  } catch (err) {
+    if (err.message === "APPT_NOT_FOUND") {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+
+    if (err.message === "FORBIDDEN") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    return res.status(err.statusCode || 500).json({ error: err.message });
+  } finally {
+    session.endSession();
+  }
+});
 module.exports = router;
