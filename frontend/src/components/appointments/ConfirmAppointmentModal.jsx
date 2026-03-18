@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/appointmentModal.css";
+import "../../styles/appointmentModal.css";
 
 export default function ConfirmAppointmentModal({
   visible,
@@ -16,11 +16,9 @@ export default function ConfirmAppointmentModal({
     appointment.advisor ||
     "Not assigned";
 
-  const appointmentTime = appointment.time || "EMPTY TIME";
-  const appointmentDate = appointment.date || "EMPTY DATE";
-  const appointmentTopic = appointment.topic || "EMPTY TOPIC";
-
-  console.log("ConfirmAppointmentModal appointment:", appointment);
+  const appointmentTime = appointment.time || "Not available";
+  const appointmentDate = appointment.date || "Not available";
+  const appointmentTopic = appointment.topic || "Not available";
 
   return (
     <div className="modalOverlay">
@@ -46,32 +44,17 @@ export default function ConfirmAppointmentModal({
 
           <div
             className="appointmentDate"
-            style={{ color: "#000" }}
+            style={{ color: "#666" }}
           >
             Date: {appointmentDate}
           </div>
 
           <div
             className="appointmentTopic"
-            style={{ color: "#000" }}
+            style={{ color: "#444" }}
           >
             Topic: {appointmentTopic}
           </div>
-
-          <pre
-            style={{
-              marginTop: "12px",
-              padding: "10px",
-              textAlign: "left",
-              background: "#f3f4f6",
-              borderRadius: "10px",
-              fontSize: "12px",
-              color: "#111",
-              overflowX: "auto",
-            }}
-          >
-            {JSON.stringify(appointment, null, 2)}
-          </pre>
         </div>
 
         <div className="modalActions">

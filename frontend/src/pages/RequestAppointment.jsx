@@ -1,409 +1,37 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React from "react";
 import "../styles/requestAppointment.css";
-import "../styles/appointmentModal.css";
-
-const API_BASE =
-  process.env.REACT_APP_API_URL ||
-  "http://localhost:5000";
-
-const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-
-function getDayName(dateValue) {
-  return new Date(dateValue).toLocaleDateString("en-US", {
-    weekday: "long",
-  });
-}
-
-function getDateLabel(dateValue) {
-  return new Date(dateValue).toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function getTimeLabel(startTime, endTime) {
-  const start = new Date(startTime);
-  const end = new Date(endTime);
-
-  return `${start.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  })} - ${end.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  })}`;
-}
-
-function ConfirmAppointmentModal({
-  visible,
-  appointment,
-  onConfirm,
-  onCancel,
-  confirming,
-}) {
-  if (!visible || !appointment) return null;
-
-  const advisorName =
-    appointment.advisorName ||
-    appointment.advisor?.name ||
-    appointment.advisor ||
-    "Not assigned";
-
-  const appointmentTime = appointment.time || "EMPTY TIME";
-  const appointmentDate = appointment.date || "EMPTY DATE";
-  const appointmentTopic = appointment.topic || "EMPTY TOPIC";
-
-  console.log("ConfirmAppointmentModal appointment:", appointment);
-
-  return (
-    <div className="modalOverlay">
-      <div className="appointmentCard">
-        <div className="checkPreview">📅</div>
-
-        <h2>Confirm Appointment</h2>
-
-        <div className="appointmentSummary">
-          <div
-            className="appointmentTime"
-            style={{ color: "#000", fontWeight: 700 }}
-          >
-            Time: {appointmentTime}
-          </div>
-
-          <div
-            className="appointmentAdvisor"
-            style={{ color: "#000", fontWeight: 700 }}
-          >
-            Advisor: {advisorName}
-          </div>
-
-          <div className="appointmentDate" style={{ color: "#000" }}>
-            Date: {appointmentDate}
-          </div>
-
-          <div className="appointmentTopic" style={{ color: "#000" }}>
-            Topic: {appointmentTopic}
-          </div>
-
-        </div>
-
-        <div className="modalActions">
-          <button
-            type="button"
-            className="cancelBtn"
-            onClick={onCancel}
-            disabled={confirming}
-          >
-            Cancel
-          </button>
-
-          <button
-            type="button"
-            className="confirmBtn"
-            onClick={onConfirm}
-            disabled={confirming}
-          >
-            {confirming ? "Confirming..." : "Confirm Appointment"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import ConfirmAppointmentModal from "../components/appointments/ConfirmAppointmentModal";
+import AvailabilityGrid from "../components/appointments/AvailabilityGrid";
+import BookingPanel from "../components/appointments/BookingPanel";
+import useRequestAppointment from "../hooks/useRequestAppointment";
 
 export default function RequestAppointment() {
-  const [advisors, setAdvisors] = useState([]);
-  const [selectedAdvisor, setSelectedAdvisor] = useState("");
-  const [slots, setSlots] = useState([]);
-  const [selectedSlotId, setSelectedSlotId] = useState("");
-  const [topics, setTopics] = useState([]);
-  const [selectedTopicId, setSelectedTopicId] = useState("");
-  const [notes, setNotes] = useState("");
-
-  const [loadingAdvisors, setLoadingAdvisors] = useState(true);
-  const [loadingTopics, setLoadingTopics] = useState(true);
-  const [loadingSlots, setLoadingSlots] = useState(false);
-  const [booking, setBooking] = useState(false);
-
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
-  const [confirmVisible, setConfirmVisible] = useState(false);
-  const [appointmentPreview, setAppointmentPreview] = useState(null);
-
-  useEffect(() => {
-    let alive = true;
-
-    (async () => {
-      try {
-        setLoadingAdvisors(true);
-        setError("");
-
-        const res = await fetch(`${API_BASE}/api/advisors`, {
-          credentials: "include",
-        });
-
-        if (!res.ok) throw new Error("Failed to load advisors.");
-
-        const data = await res.json();
-        const list = Array.isArray(data) ? data : data.advisors || [];
-
-        console.log("ADVISORS FROM API:", list);
-
-        if (alive) setAdvisors(list);
-      } catch (err) {
-        if (alive) {
-          setAdvisors([]);
-          setError(err.message || "Could not load advisors.");
-        }
-      } finally {
-        if (alive) setLoadingAdvisors(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let alive = true;
-
-    (async () => {
-      try {
-        setLoadingTopics(true);
-
-        const res = await fetch(`${API_BASE}/api/topics`, {
-          credentials: "include",
-        });
-
-        if (!res.ok) throw new Error("Failed to load topics.");
-
-        const data = await res.json();
-        const list = Array.isArray(data) ? data : data.topics || [];
-
-        if (alive) setTopics(list);
-      } catch (err) {
-        if (alive) {
-          setTopics([]);
-        }
-      } finally {
-        if (alive) setLoadingTopics(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let alive = true;
-
-    if (!selectedAdvisor) {
-      setSlots([]);
-      setSelectedSlotId("");
-      setSelectedTopicId("");
-      setNotes("");
-      setConfirmVisible(false);
-      setAppointmentPreview(null);
-      return;
-    }
-
-    (async () => {
-      try {
-        setLoadingSlots(true);
-        setError("");
-        setSuccess("");
-        setSelectedSlotId("");
-        setSelectedTopicId("");
-        setNotes("");
-        setConfirmVisible(false);
-        setAppointmentPreview(null);
-
-        const res = await fetch(
-          `${API_BASE}/api/availability?advisorId=${selectedAdvisor}`,
-          { credentials: "include" }
-        );
-
-        if (!res.ok) {
-          throw new Error("Failed to load availability.");
-        }
-
-        const data = await res.json();
-        const list = Array.isArray(data)
-          ? data
-          : data.slots || data.availability || [];
-
-        if (alive) setSlots(list);
-      } catch (err) {
-        if (alive) {
-          setSlots([]);
-          setError(err.message || "Could not load availability.");
-        }
-      } finally {
-        if (alive) setLoadingSlots(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [selectedAdvisor]);
-
-  const timeRows = useMemo(() => {
-    const uniqueLabels = [
-      ...new Set(slots.map((slot) => getTimeLabel(slot.startTime, slot.endTime))),
-    ];
-
-    uniqueLabels.sort((a, b) => {
-      const aStart = a.split(" - ")[0];
-      const bStart = b.split(" - ")[0];
-      const aDate = new Date(`2000-01-01 ${aStart}`);
-      const bDate = new Date(`2000-01-01 ${bStart}`);
-      return aDate - bDate;
-    });
-
-    return uniqueLabels;
-  }, [slots]);
-
-  const slotMap = useMemo(() => {
-    const map = {};
-
-    for (const slot of slots) {
-      const day = getDayName(slot.startTime);
-      const time = getTimeLabel(slot.startTime, slot.endTime);
-
-      if (!map[day]) map[day] = {};
-      map[day][time] = slot;
-    }
-
-    return map;
-  }, [slots]);
-
-  const selectedSlot = useMemo(
-    () => slots.find((slot) => slot._id === selectedSlotId) || null,
-    [slots, selectedSlotId]
-  );
-
-  function openConfirmModal() {
-    setError("");
-    setSuccess("");
-
-    if (!selectedAdvisor || !selectedSlotId || !selectedTopicId) {
-      setError("Please select an advisor, a time block, and a topic.");
-      return;
-    }
-
-    const advisor = advisors.find(
-      (a) => String(a._id || a.id) === String(selectedAdvisor)
-    );
-
-    const topic = topics.find(
-      (t) => String(t._id || t.id) === String(selectedTopicId)
-    );
-
-    if (!selectedSlot || !advisor || !topic) {
-      console.log("selectedAdvisor:", selectedAdvisor);
-      console.log("advisor found:", advisor);
-      console.log("all advisors:", advisors);
-      console.log("selectedTopicId:", selectedTopicId);
-      console.log("topic found:", topic);
-      setError("Could not prepare appointment summary.");
-      return;
-    }
-
-    const advisorName =
-      advisor.name ||
-      advisor.fullName ||
-      advisor.advisorName ||
-      advisor.email ||
-      "Advisor";
-
-    console.log("selectedSlot:", selectedSlot);
-    console.log("advisor found:", advisor);
-    console.log("topic found:", topic);
-    console.log("appointment preview:", {
-      advisor: advisorName,
-      date: getDateLabel(selectedSlot.startTime),
-      time: getTimeLabel(selectedSlot.startTime, selectedSlot.endTime),
-      topic: topic.title || topic.name || "Topic",
-    });
-
-    setAppointmentPreview({
-      advisor: advisorName,
-      date: getDateLabel(selectedSlot.startTime),
-      time: getTimeLabel(selectedSlot.startTime, selectedSlot.endTime),
-      topic: topic.title || topic.name || "Topic",
-    });
-
-    setConfirmVisible(true);
-  }
-
-  async function confirmAppointment() {
-    setError("");
-    setSuccess("");
-
-    if (!selectedAdvisor || !selectedSlotId || !selectedTopicId) {
-      setConfirmVisible(false);
-      setError("Missing appointment information.");
-      return;
-    }
-
-    try {
-      setBooking(true);
-
-      const res = await fetch(`${API_BASE}/api/appointments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          advisorId: selectedAdvisor,
-          availabilityId: selectedSlotId,
-          topicId: selectedTopicId,
-          notes,
-        }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        throw new Error(data?.error || data?.message || "Failed to create appointment.");
-      }
-
-      setConfirmVisible(false);
-      setSuccess("Appointment created successfully.");
-
-      const refreshRes = await fetch(
-        `${API_BASE}/api/availability?advisorId=${selectedAdvisor}`,
-        { credentials: "include" }
-      );
-
-      if (refreshRes.ok) {
-        const refreshData = await refreshRes.json();
-        const refreshedList = Array.isArray(refreshData)
-          ? refreshData
-          : refreshData.slots || refreshData.availability || [];
-        setSlots(refreshedList);
-      }
-
-      setSelectedSlotId("");
-      setSelectedTopicId("");
-      setNotes("");
-      setAppointmentPreview(null);
-    } catch (err) {
-      setConfirmVisible(false);
-      setError(err.message || "Booking failed.");
-    } finally {
-      setBooking(false);
-    }
-  }
-
-  function cancelConfirmation() {
-    setConfirmVisible(false);
-  }
+  const {
+    advisors,
+    selectedAdvisor,
+    setSelectedAdvisor,
+    selectedSlotId,
+    setSelectedSlotId,
+    topics,
+    selectedTopicId,
+    setSelectedTopicId,
+    notes,
+    setNotes,
+    loadingAdvisors,
+    loadingTopics,
+    loadingSlots,
+    booking,
+    error,
+    success,
+    confirmVisible,
+    appointmentPreview,
+    timeRows,
+    slotMap,
+    selectedSlot,
+    openConfirmModal,
+    confirmAppointment,
+    cancelConfirmation,
+  } = useRequestAppointment();
 
   return (
     <div className="requestPage">
@@ -439,122 +67,26 @@ export default function RequestAppointment() {
       ) : timeRows.length === 0 ? (
         <p className="helperText">No schedule available for this advisor.</p>
       ) : (
-        <div className="scheduleWrap">
-          <div className="scheduleHeader">
-            <h3>Advisor Weekly Schedule</h3>
-            <p>Light Blue = available, Gray = occupied, Dark blue = selected</p>
-          </div>
-
-          <div className="scheduleGrid">
-            <div className="timeCorner">Time</div>
-
-            {WEEK_DAYS.map((day) => (
-              <div key={day} className="dayHeader">
-                {day}
-              </div>
-            ))}
-
-            {timeRows.map((timeLabel) => (
-              <React.Fragment key={timeLabel}>
-                <div className="timeLabel">{timeLabel}</div>
-
-                {WEEK_DAYS.map((day) => {
-                  const slot = slotMap?.[day]?.[timeLabel];
-                  const isSelected = selectedSlotId === slot?._id;
-
-                  if (!slot) {
-                    return (
-                      <div key={`${day}-${timeLabel}`} className="cell bookedCell">
-                        Not Available
-                      </div>
-                    );
-                  }
-
-                  const isBooked = !!slot.isBooked;
-
-                  return (
-                    <button
-                      key={`${day}-${timeLabel}`}
-                      type="button"
-                      className={[
-                        "cell",
-                        isBooked ? "bookedCell" : "availableCell",
-                        isSelected ? "selectedCell" : "",
-                      ].join(" ")}
-                      disabled={isBooked || booking}
-                      onClick={() => setSelectedSlotId(slot._id)}
-                      title={
-                        isBooked
-                          ? "Not Available"
-                          : `${day} ${timeLabel} - Available`
-                      }
-                    >
-                      {isBooked
-                        ? "Not Available"
-                        : isSelected
-                        ? "Selected"
-                        : "Available"}
-                    </button>
-                  );
-                })}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
+        <AvailabilityGrid
+          timeRows={timeRows}
+          slotMap={slotMap}
+          selectedSlotId={selectedSlotId}
+          setSelectedSlotId={setSelectedSlotId}
+          booking={booking}
+        />
       )}
 
-      {selectedSlot ? (
-        <div className="bookingPanel">
-          <div className="selectionSummary">
-            <h3>Selected Block</h3>
-            <p>
-              <strong>Day:</strong> {getDayName(selectedSlot.startTime)}
-            </p>
-            <p>
-              <strong>Time:</strong>{" "}
-              {getTimeLabel(selectedSlot.startTime, selectedSlot.endTime)}
-            </p>
-          </div>
-
-          <div className="field">
-            <label htmlFor="topicSelect">Topic</label>
-            <select
-              id="topicSelect"
-              value={selectedTopicId}
-              onChange={(e) => setSelectedTopicId(e.target.value)}
-              disabled={loadingTopics || booking}
-            >
-              <option value="">Select topic</option>
-              {topics.map((topic) => (
-                <option key={topic._id} value={topic._id}>
-                  {topic.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label htmlFor="notes">Notes (optional)</label>
-            <textarea
-              id="notes"
-              rows="4"
-              placeholder="Add any details for the advisor..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              disabled={booking}
-            />
-          </div>
-
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={openConfirmModal}
-            disabled={booking}
-          >
-            Request Appointment
-          </button>
-        </div>
-      ) : null}
+      <BookingPanel
+        selectedSlot={selectedSlot}
+        topics={topics}
+        selectedTopicId={selectedTopicId}
+        setSelectedTopicId={setSelectedTopicId}
+        notes={notes}
+        setNotes={setNotes}
+        loadingTopics={loadingTopics}
+        booking={booking}
+        openConfirmModal={openConfirmModal}
+      />
 
       <ConfirmAppointmentModal
         visible={confirmVisible}
