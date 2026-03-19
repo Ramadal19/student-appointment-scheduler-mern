@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import DeleteAppointmentModal from "../components/appointments/DeleteAppointmentModal";
 import RequestAppointment from "./RequestAppointment";
 import "../styles/Dashboard.css";
+import Settings from "../pages/Settings";
 
 const API_BASE =
   process.env.REACT_APP_API_URL ||
@@ -14,12 +16,27 @@ function formatDateRange(start, end) {
   const startDate = new Date(start);
   const endDate = end ? new Date(end) : null;
 
-  const startText = startDate.toLocaleString();
-  const endText = endDate
-    ? endDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  const startText = startDate.toLocaleDateString([], {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  });
+
+  const startTimeText = startDate.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  const endTimeText = endDate
+    ? endDate.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      })
     : "";
 
-  return endText ? `${startText} - ${endText}` : startText;
+  return endTimeText
+    ? `${startText}, ${startTimeText} - ${endTimeText}`
+    : `${startText}, ${startTimeText}`;
 }
 
 function getAdvisorName(appointment) {
@@ -43,12 +60,51 @@ function getTopicLabel(appointment) {
   );
 }
 
+function formatUpcomingDate(start, end) {
+  if (!start) return "No date";
+
+  const startDate = new Date(start);
+  const endDate = end ? new Date(end) : null;
+  const now = new Date();
+
+  const isToday = startDate.toDateString() === now.toDateString();
+
+  const tomorrow = new Date();
+  tomorrow.setDate(now.getDate() + 1);
+  const isTomorrow = startDate.toDateString() === tomorrow.toDateString();
+
+  const dayLabel = isToday
+    ? "Today"
+    : isTomorrow
+    ? "Tomorrow"
+    : startDate.toLocaleDateString([], {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
+
+  const startTimeText = startDate.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  const endTimeText = endDate
+    ? endDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
+
+  return endTimeText
+    ? `${dayLabel} • ${startTimeText} - ${endTimeText}`
+    : `${dayLabel} • ${startTimeText}`;
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
   const [active, setActive] = useState("Dashboard");
   const [appointments, setAppointments] = useState([]);
-
   const [statusFilter, setStatusFilter] = useState("all");
 
   const [status, setStatus] = useState("Checking session...");
@@ -56,6 +112,9 @@ export default function Dashboard() {
   const [sessionOk, setSessionOk] = useState(false);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
   const [deleteLoadingId, setDeleteLoadingId] = useState(null);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null);
 
   useEffect(() => {
     fetch(`${API_BASE}/auth/me`, { credentials: "include" })
@@ -87,26 +146,60 @@ export default function Dashboard() {
       });
   }, [navigate]);
 
+  const loadAppointments = async () => {
+    try {
+      setLoadingAppointments(true);
+
+      const res = await fetch(`${API_BASE}/api/appointments/my`, {
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Failed to load appointments");
+
+      const data = await res.json();
+      setAppointments(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setAppointments([]);
+    } finally {
+      setLoadingAppointments(false);
+    }
+  };
+
   useEffect(() => {
     if (!sessionOk) return;
-
-    setLoadingAppointments(true);
-
-    fetch(`${API_BASE}/api/appointments/my`, { credentials: "include" })
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Failed to load appointments");
-        return res.json();
-      })
-      .then((data) => setAppointments(Array.isArray(data) ? data : []))
-      .catch(() => setAppointments([]))
-      .finally(() => setLoadingAppointments(false));
+    loadAppointments();
   }, [sessionOk]);
+
+  useEffect(() => {
+    if (active !== "Dashboard") {
+      setDeleteModalOpen(false);
+      setAppointmentToDelete(null);
+      setDeleteLoadingId(null);
+    }
+  }, [active]);
+
+  useEffect(() => {
+    if (sessionOk && active === "Dashboard") {
+      loadAppointments();
+    }
+  }, [active, sessionOk]);
 
   const normalizedAppointments = useMemo(() => {
     return appointments.map((a) => {
       const id = a._id || a.id || "";
-      const startTime = a.startTime || a.availabilityId?.startTime || a.availability?.startTime || null;
-      const endTime = a.endTime || a.availabilityId?.endTime || a.availability?.endTime || null;
+
+      const startTime =
+        a.startTime ||
+        a.availabilityId?.startTime ||
+        a.availability?.startTime ||
+        null;
+
+      const endTime =
+        a.endTime ||
+        a.availabilityId?.endTime ||
+        a.availability?.endTime ||
+        null;
+
       const advisor = getAdvisorName(a);
       const topic = getTopicLabel(a);
       const status = String(a.status || "confirmed").toLowerCase();
@@ -138,45 +231,57 @@ export default function Dashboard() {
   ).length;
 
   const upcomingAppointments = useMemo(() => {
-    const now = new Date();
-
-    return [...normalizedAppointments]
-      .filter((a) => a.startTime && new Date(a.startTime) >= now)
+    return normalizedAppointments
+      .filter((a) => a.startTime && a.status === "confirmed")
       .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
-      .slice(0, 5);
+      .slice(0, 2);
   }, [normalizedAppointments]);
 
-  const handleDelete = async (appointmentId) => {
-  const ok = window.confirm(
-    "Are you sure you want to delete this appointment?"
-  );
-  if (!ok) return;
+  const openDeleteModal = (appointment) => {
+    setAppointmentToDelete(appointment);
+    setDeleteModalOpen(true);
+  };
 
-  try {
-    setDeleteLoadingId(appointmentId);
+  const closeDeleteModal = () => {
+    if (deleteLoadingId) return;
+    setDeleteModalOpen(false);
+    setAppointmentToDelete(null);
+  };
 
-    const res = await fetch(`${API_BASE}/api/appointments/${appointmentId}`, {
-      method: "DELETE",
-      credentials: "include",
-    });
+  const handleDelete = async () => {
+    if (!appointmentToDelete?.id) return;
 
-    const data = await res.json().catch(() => ({}));
+    try {
+      setDeleteLoadingId(appointmentToDelete.id);
 
-    if (!res.ok) {
-      throw new Error(
-        data.error || data.message || "Failed to delete appointment"
+      const res = await fetch(
+        `${API_BASE}/api/appointments/${appointmentToDelete.id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
       );
-    }
 
-    setAppointments((prev) =>
-      prev.filter((a) => (a._id || a.id) !== appointmentId)
-    );
-  } catch (err) {
-    alert(err.message || "Could not delete appointment");
-  } finally {
-    setDeleteLoadingId(null);
-  }
-};
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          data.error || data.message || "Failed to delete appointment"
+        );
+      }
+
+      setAppointments((prev) =>
+        prev.filter((a) => (a._id || a.id) !== appointmentToDelete.id)
+      );
+
+      setDeleteModalOpen(false);
+      setAppointmentToDelete(null);
+    } catch (err) {
+      alert(err.message || "Could not delete appointment");
+    } finally {
+      setDeleteLoadingId(null);
+    }
+  };
 
   const onLogout = async () => {
     try {
@@ -221,7 +326,7 @@ export default function Dashboard() {
                 className={statusFilter === "confirmed" ? "filterBtn active" : "filterBtn"}
                 onClick={() => setStatusFilter("confirmed")}
               >
-                Confirmed
+                confirmed
               </button>
             </div>
 
@@ -234,7 +339,7 @@ export default function Dashboard() {
               </div>
 
               <div className="statCard teal">
-                <div className="statTitle">Confirmed</div>
+                <div className="statTitle">confirmed</div>
                 <div className="statSub">Scheduled meetings</div>
                 <div className="statValue">{confirmed}</div>
                 <div className="statFoot">Ready to attend</div>
@@ -242,19 +347,27 @@ export default function Dashboard() {
             </div>
 
             <h2 className="sectionTitle">Upcoming Appointments</h2>
-            <div className="tableCard" style={{ marginBottom: "20px" }}>
+            <div className="upcomingGrid">
               {upcomingAppointments.length > 0 ? (
-                <ul className="upcomingList">
-                  {upcomingAppointments.map((a) => (
-                    <li key={a.id} className="upcomingItem">
-                      <strong>{a.topic}</strong> with {a.advisor}
-                      <br />
-                      <span>{a.dateLabel}</span>
-                    </li>
-                  ))}
-                </ul>
+                upcomingAppointments.map((a) => (
+                  <div key={a.id} className="upcomingCard">
+                    <div className="upcomingCardTop">
+                      <span className="upcomingBadge">confirmed</span>
+                    </div>
+
+                    <h3 className="upcomingTopic">{a.topic}</h3>
+
+                    <p className="upcomingAdvisor">Advisor: {a.advisor}</p>
+
+                    <p className="upcomingDate">
+                      {formatUpcomingDate(a.startTime, a.endTime)}
+                    </p>
+                  </div>
+                ))
               ) : (
-                <div className="empty">No upcoming appointments.</div>
+                <div className="tableCard">
+                  <div className="empty">No upcoming appointments scheduled.</div>
+                </div>
               )}
             </div>
 
@@ -291,7 +404,7 @@ export default function Dashboard() {
                       <td>
                         <button
                           className="deleteBtn"
-                          onClick={() => handleDelete(a.id)}
+                          onClick={() => openDeleteModal(a)}
                           disabled={deleteLoadingId === a.id}
                         >
                           {deleteLoadingId === a.id ? "Deleting..." : "Delete"}
@@ -310,21 +423,30 @@ export default function Dashboard() {
                 </tbody>
               </table>
             </div>
+
+            <DeleteAppointmentModal
+              open={deleteModalOpen}
+              onClose={closeDeleteModal}
+              onConfirm={handleDelete}
+              loading={deleteLoadingId === appointmentToDelete?.id}
+              appointment={appointmentToDelete}
+            />
           </div>
         )}
 
         {active === "Request Appointment" && (
           <div className="pageCard">
-            <RequestAppointment />
+            <RequestAppointment sessionOk={sessionOk}
+              user={user}
+              onAppointmentCreated={async () => {
+                await loadAppointments();
+                setActive("Dashboard");
+              }}
+            />
           </div>
         )}
 
-        {active === "Settings" && (
-          <div className="pageCard">
-            <h1>Settings</h1>
-            <p className="subtitle">Settings section coming soon.</p>
-          </div>
-        )}
+        {active === "Settings" && <Settings />}
       </main>
     </div>
   );

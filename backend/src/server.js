@@ -8,11 +8,11 @@ const { requireAuth } = require("./middleware/auth");
 const session = require("express-session");
 const passport = require("passport");
 require("./config/passport"); // strategy + serialize/deserialize
-
+const userRoutes = require("./routes/userRoutes");
 const authRoutes = require("./routes/auth");
 const advisorRoutes = require("./routes/advisors");
 const appointmentRoutes = require("./routes/appointments");
-const availabilityRoutes = require("./routes/availability"); // ✅ NUEVO
+const availabilityRoutes = require("./routes/availability"); 
 const topicRoutes = require("./routes/topics");
 const app = express();
 
@@ -83,7 +83,7 @@ app.use("/api/advisors", advisorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/availability", availabilityRoutes); // ✅ NUEVO
 app.use("/api/topics", topicRoutes);
-
+app.use("/api/users", userRoutes);
 app.get("/", (req, res) =>
   res.status(200).send("Backend server is running 🚀")
 );

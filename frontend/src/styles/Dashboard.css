@@ -316,7 +316,7 @@
   font-size: 0.95rem;
   font-weight: 800;
   color: #0f274e;
-  padding: 14px 10px;
+  padding: 10px 1px;
   border-bottom: 1px solid #dde6f1;
 }
 
@@ -398,4 +398,63 @@
 .table td:last-child {
   padding-left: 24px;
   text-align: right;
+}
+.upcomingGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.upcomingCard {
+  background: #f5d0d0;
+  border: 1px solid #e7edf6;
+  border-radius: 18px;
+  padding: 8px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+}
+
+.upcomingCardTop {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 3px;
+}
+
+.upcomingBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: #d9f3ec;
+  color: #0a7a64;
+}
+
+.upcomingTopic {
+  margin: 0 0 5px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #15365f;
+  line-height: 1.25;
+}
+
+.upcomingAdvisor {
+  margin: 0 0 5px;
+  font-size: 9.92rem;
+  color: #42556b;
+}
+
+.upcomingDate {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #234a84;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .upcomingGrid {
+    grid-template-columns: 1fr;
+  }
 }

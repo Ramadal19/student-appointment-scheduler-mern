@@ -111,7 +111,9 @@ router.post("/", requireAuth, requireRole("student"), async (req, res) => {
   const required = { advisorId, topicId, availabilityId };
   for (const [k, v] of Object.entries(required)) {
     if (!v) return res.status(400).json({ error: `Missing field: ${k}` });
-    if (!isValidId(v)) return res.status(400).json({ error: `Invalid ObjectId for ${k}` });
+    if (!isValidId(v)) {
+      return res.status(400).json({ error: `Invalid ObjectId for ${k}` });
+    }
   }
 
   const session = await mongoose.startSession();
@@ -126,11 +128,28 @@ router.post("/", requireAuth, requireRole("student"), async (req, res) => {
       }
 
       if (String(slotCheck.advisorId) !== String(advisorId)) {
-        throw Object.assign(new Error("SLOT_DOES_NOT_BELONG_TO_ADVISOR"), { statusCode: 400 });
+        throw Object.assign(new Error("SLOT_DOES_NOT_BELONG_TO_ADVISOR"), {
+          statusCode: 400,
+        });
       }
 
       if (isLunchSlot(slotCheck)) {
-        throw Object.assign(new Error("LUNCH_HOUR_NOT_BOOKABLE"), { statusCode: 409 });
+        throw Object.assign(new Error("LUNCH_HOUR_NOT_BOOKABLE"), {
+          statusCode: 409,
+        });
+      }
+
+      const existingStudentAppointment = await Appointment.findOne({
+        studentId,
+        startTime: slotCheck.startTime,
+        status: { $in: ["confirmed", "requested"] },
+      }).session(session);
+
+      if (existingStudentAppointment) {
+        throw Object.assign(
+          new Error("STUDENT_ALREADY_BOOKED_THIS_TIME"),
+          { statusCode: 409 }
+        );
       }
 
       const lockedSlot = await Availability.findOneAndUpdate(
@@ -176,15 +195,27 @@ router.post("/", requireAuth, requireRole("student"), async (req, res) => {
     }
 
     if (err.message === "SLOT_DOES_NOT_BELONG_TO_ADVISOR") {
-      return res.status(400).json({ error: "Slot does not belong to the given advisorId" });
+      return res.status(400).json({
+        error: "Slot does not belong to the given advisorId",
+      });
     }
 
     if (err.message === "LUNCH_HOUR_NOT_BOOKABLE") {
-      return res.status(409).json({ error: "Lunch hour (12–1) is not bookable." });
+      return res.status(409).json({
+        error: "Lunch hour (12–1) is not bookable.",
+      });
+    }
+
+    if (err.message === "STUDENT_ALREADY_BOOKED_THIS_TIME") {
+      return res.status(409).json({
+        error: "You already have another appointment scheduled at this time. \nPlease choose a different time slot.",
+      });
     }
 
     if (err.message === "SLOT_NOT_AVAILABLE") {
-      return res.status(409).json({ error: "Slot not available (already booked or invalid)." });
+      return res.status(409).json({
+        error: "Slot not available (already booked or invalid).",
+      });
     }
 
     return res.status(err.statusCode || 500).json({ error: err.message });

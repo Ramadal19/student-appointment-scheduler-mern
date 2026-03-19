@@ -31,7 +31,7 @@ export default function BookingPanel({
       </div>
 
       <div className="field">
-        <label htmlFor="topicSelect">Topic</label>
+        <label htmlFor="topicSelect">Topic *</label>
         <select
           id="topicSelect"
           value={selectedTopicId}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+
 import {
   getDayName,
   getDateLabel,
@@ -9,7 +10,19 @@ const API_BASE =
   process.env.REACT_APP_API_URL ||
   "http://localhost:5000";
 
-export default function useRequestAppointment() {
+const FIXED_TIME_ROWS = [
+  "08:00 AM - 09:00 AM",
+  "09:00 AM - 10:00 AM",
+  "10:00 AM - 11:00 AM",
+  "11:00 AM - 12:00 PM",
+//  "12:00 PM - 01:00 PM",
+  "01:00 PM - 02:00 PM",
+  "02:00 PM - 03:00 PM",
+  "03:00 PM - 04:00 PM",
+  "04:00 PM - 05:00 PM",
+];
+
+export default function useRequestAppointment(onAppointmentCreated) {
   const [advisors, setAdvisors] = useState([]);
   const [selectedAdvisor, setSelectedAdvisor] = useState("");
   const [slots, setSlots] = useState([]);
@@ -117,8 +130,13 @@ export default function useRequestAppointment() {
         setConfirmVisible(false);
         setAppointmentPreview(null);
 
+        const weekFrom = "2026-03-23T00:00:00.000Z";
+        const weekTo = "2026-03-27T23:59:59.999Z";
+
         const res = await fetch(
-          `${API_BASE}/api/availability?advisorId=${selectedAdvisor}`,
+          `${API_BASE}/api/availability?advisorId=${selectedAdvisor}&from=${encodeURIComponent(
+            weekFrom
+          )}&to=${encodeURIComponent(weekTo)}`,
           { credentials: "include" }
         );
 
@@ -147,21 +165,7 @@ export default function useRequestAppointment() {
     };
   }, [selectedAdvisor]);
 
-  const timeRows = useMemo(() => {
-    const uniqueLabels = [
-      ...new Set(slots.map((slot) => getTimeLabel(slot.startTime, slot.endTime))),
-    ];
-
-    uniqueLabels.sort((a, b) => {
-      const aStart = a.split(" - ")[0];
-      const bStart = b.split(" - ")[0];
-      const aDate = new Date(`2000-01-01 ${aStart}`);
-      const bDate = new Date(`2000-01-01 ${bStart}`);
-      return aDate - bDate;
-    });
-
-    return uniqueLabels;
-  }, [slots]);
+  const timeRows = useMemo(() => FIXED_TIME_ROWS, []);
 
   const slotMap = useMemo(() => {
     const map = {};
@@ -184,7 +188,6 @@ export default function useRequestAppointment() {
 
   function openConfirmModal() {
     setError("");
-    setSuccess("");
 
     if (!selectedAdvisor || !selectedSlotId || !selectedTopicId) {
       setError("Please select an advisor, a time block, and a topic.");
@@ -223,7 +226,6 @@ export default function useRequestAppointment() {
 
   async function confirmAppointment() {
     setError("");
-    setSuccess("");
 
     if (!selectedAdvisor || !selectedSlotId || !selectedTopicId) {
       setConfirmVisible(false);
@@ -255,25 +257,12 @@ export default function useRequestAppointment() {
       }
 
       setConfirmVisible(false);
-      setSuccess("Appointment created successfully.");
 
-      const refreshRes = await fetch(
-        `${API_BASE}/api/availability?advisorId=${selectedAdvisor}`,
-        { credentials: "include" }
-      );
-
-      if (refreshRes.ok) {
-        const refreshData = await refreshRes.json();
-        const refreshedList = Array.isArray(refreshData)
-          ? refreshData
-          : refreshData.slots || refreshData.availability || [];
-        setSlots(refreshedList);
+      if (onAppointmentCreated) {
+        await onAppointmentCreated();
       }
 
-      setSelectedSlotId("");
-      setSelectedTopicId("");
-      setNotes("");
-      setAppointmentPreview(null);
+      return;
     } catch (err) {
       setConfirmVisible(false);
       setError(err.message || "Booking failed.");

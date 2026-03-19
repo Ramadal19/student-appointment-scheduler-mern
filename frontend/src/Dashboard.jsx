@@ -65,7 +65,7 @@ export default function Dashboard() {
             </div>
 
             <div className="statCard teal">
-              <div className="statTitle">Confirmed</div>
+              <div className="statTitle">confirmed</div>
               <div className="statSub">OK</div>
               <div className="statValue">{confirmed}</div>
               <div className="statFoot">Ready to attend</div>

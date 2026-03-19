@@ -5,7 +5,11 @@ import AvailabilityGrid from "../components/appointments/AvailabilityGrid";
 import BookingPanel from "../components/appointments/BookingPanel";
 import useRequestAppointment from "../hooks/useRequestAppointment";
 
-export default function RequestAppointment() {
+export default function RequestAppointment({
+  sessionOk,
+  user,
+  onAppointmentCreated,
+}) {
   const {
     advisors,
     selectedAdvisor,
@@ -31,20 +35,17 @@ export default function RequestAppointment() {
     openConfirmModal,
     confirmAppointment,
     cancelConfirmation,
-  } = useRequestAppointment();
+  } = useRequestAppointment(onAppointmentCreated);
 
   return (
     <div className="requestPage">
       <h2>Request Appointment</h2>
       <p className="subtitle">
-        Select an advisor and choose a time block from the weekly schedule.
+        Select an advisor and choose a time block. <strong>*</strong> Indicates required fields.
       </p>
 
-      {error ? <div className="auth-alert">{error}</div> : null}
-      {success ? <div className="success-alert">{success}</div> : null}
-
       <div className="field">
-        <label htmlFor="advisorSelect">Advisor</label>
+        <label htmlFor="advisorSelect">Advisor *</label>
         <select
           id="advisorSelect"
           value={selectedAdvisor}
@@ -75,6 +76,11 @@ export default function RequestAppointment() {
           booking={booking}
         />
       )}
+
+      <div className="requestFeedback">
+        {error && <div className="auth-alert">{error}</div>}
+        {success && <div className="success-alert">{success}</div>}
+      </div>
 
       <BookingPanel
         selectedSlot={selectedSlot}

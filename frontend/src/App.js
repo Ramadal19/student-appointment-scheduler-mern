@@ -5,7 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-
+import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Schedule from "./pages/Schedule";
@@ -35,7 +35,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        
+        <Route path="/settings" element={<Settings />} />
         <Route path="/schedule" element={
           <ProtectedRoute>
             <Schedule />
@@ -50,7 +50,7 @@ export default function App() {
 
         {/* Protected */}
         <Route
-          path="/dashboard"
+          path="/dashboard"A
           element={
             <ProtectedRoute>
               <Dashboard />

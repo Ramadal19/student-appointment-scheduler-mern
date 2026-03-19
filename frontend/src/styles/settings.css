@@ -1,0 +1,195 @@
+.settings-page {
+  width: 100%;
+  padding: 26px 30px 36px;
+  box-sizing: border-box;
+}
+
+.settings-hero {
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 28px 34px;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+  margin-bottom: 24px;
+}
+
+.settings-title {
+  margin: 0 0 8px;
+  font-size: 3.2rem;
+  line-height: 1;
+  font-weight: 800;
+  color: #174a97;
+}
+
+.settings-subtitle {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #2020a0;
+}
+
+.settings-panel {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.settings-card {
+  width: min(100%, 720px);
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+}
+
+.settings-card-header h2 {
+  margin: 0 0 8px;
+  font-size: 1.7rem;
+  color: #174a97;
+}
+
+.settings-card-header p {
+  margin: 0 0 22px;
+  color: #51607a;
+  font-size: 1rem;
+}
+
+.settings-info {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f4f7fb;
+  border: 1px solid #dbe5f0;
+  color: #34507a;
+  line-height: 1.5;
+}
+
+.settings-info-github {
+  background: #eef4ff;
+  border-color: #c9d9ff;
+  color: #233e8b;
+}
+
+.settings-alert {
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.settings-alert.error {
+  background: #ffecec;
+  border: 1px solid #f3b6b6;
+  color: #991b1b;
+}
+
+.settings-alert.success {
+  background: #ebfff2;
+  border: 1px solid #a7f3c5;
+  color: #065f46;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-field label {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #174a97;
+}
+
+.settings-field input {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid #d6dbe8;
+  outline: none;
+  font-size: 1rem;
+  color: #1f2937;
+  background: #ffffff;
+  box-sizing: border-box;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.settings-field input:focus {
+  border-color: #4d7ed8;
+  box-shadow: 0 0 0 3px rgba(77, 126, 216, 0.14);
+}
+
+.settings-field input:disabled {
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
+.settings-actions {
+  margin-top: 6px;
+}
+
+.settings-actions button {
+  border: none;
+  border-radius: 14px;
+  background: #174a97;
+  color: #ffffff;
+  padding: 12px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.settings-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.settings-actions button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.password-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 20px 18px 28px;
+  }
+
+  .settings-hero {
+    padding: 22px 20px;
+    border-radius: 22px;
+  }
+
+  .settings-title {
+    font-size: 2.5rem;
+  }
+
+  .settings-subtitle {
+    font-size: 1rem;
+  }
+
+  .settings-card {
+    padding: 22px 18px;
+    border-radius: 20px;
+  }
+}

@@ -1,0 +1,188 @@
+.deleteModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+}
+
+.deleteModalCard {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+  overflow: hidden;
+}
+
+.deleteModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #e8edf5;
+}
+
+.deleteModalHeader h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #143f84;
+}
+
+.deleteModalClose {
+  border: none;
+  background: transparent;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #5e6b7a;
+}
+
+.deleteModalClose:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.deleteModalBody {
+  padding: 20px 22px 12px;
+}
+
+.deleteModalText {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  color: #24364b;
+}
+
+.deleteModalSummary {
+  display: grid;
+  gap: 12px;
+  background: #f7f9fc;
+  border: 1px solid #e8edf5;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.deleteModalSummary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.deleteModalLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6d7888;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.deleteModalSummary strong {
+  font-size: 0.96rem;
+  color: #18324f;
+}
+
+.deleteModalWarning {
+  margin: 16px 0 0;
+  font-size: 0.92rem;
+  color: #b5473a;
+}
+
+.deleteModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 22px 22px;
+}
+
+.deleteModalCancelBtn,
+.deleteModalDeleteBtn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.deleteModalCancelBtn {
+  background: #edf2f7;
+  color: #21364d;
+}
+
+.deleteModalDeleteBtn {
+  background: #ef5444;
+  color: #ffffff;
+}
+
+.deleteModalCancelBtn:hover,
+.deleteModalDeleteBtn:hover {
+  transform: translateY(-1px);
+}
+
+.deleteModalCancelBtn:disabled,
+.deleteModalDeleteBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 640px) {
+  .deleteModalCard {
+    max-width: 100%;
+  }
+
+  .deleteModalActions {
+    flex-direction: column;
+  }
+
+  .deleteModalCancelBtn,
+  .deleteModalDeleteBtn {
+    width: 100%;
+  }
+}
+/* OVERLAY ANIMADO */
+.deleteModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 9999;
+
+  opacity: 0;
+  animation: overlayFadeIn 0.25s ease forwards;
+}
+
+/* MODAL ANIMADO */
+.deleteModalCard {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+  overflow: hidden;
+
+  transform: scale(0.95);
+  opacity: 0;
+  animation: modalScaleIn 0.25s ease forwards;
+}
+
+/* ANIMACIONES */
+@keyframes overlayFadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalScaleIn {
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
