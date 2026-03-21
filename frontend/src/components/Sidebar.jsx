@@ -32,7 +32,7 @@ export default function Sidebar({ active, setActive, onLogout, profileName = "St
         ))}
       </ul>
 
-      {/* ✅ AQUÍ: datos reales */}
+      {/* Real Data */}
       <div className="profile">
         <div className="avatar">👤</div>
         <div>

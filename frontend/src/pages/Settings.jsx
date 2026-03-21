@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
+import { API_BASE, apiFetch } from "../api";
 import "../styles/settings.css";
-
-const API_BASE =
-  process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -23,18 +21,7 @@ export default function Settings() {
       try {
         setLoadingUser(true);
 
-        const res = await fetch(`${API_BASE}/auth/me`, {
-          credentials: "include",
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          if (alive) {
-            setUser(null);
-          }
-          return;
-        }
+        const data = await apiFetch("/auth/me");
 
         if (alive) {
           setUser(data.user || null);
@@ -177,7 +164,9 @@ export default function Settings() {
                 </div>
 
                 <div className="settings-field">
-                  <label htmlFor="confirmPassword">Confirm New Password</label>
+                  <label htmlFor="confirmPassword">
+                    Confirm New Password
+                  </label>
                   <input
                     id="confirmPassword"
                     type="password"

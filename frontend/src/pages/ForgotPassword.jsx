@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import forgotImg from "../assets/forg-bg.png";
-
-const API_BASE =
-  process.env.REACT_APP_API_URL ||
-  "https://student-appointment-scheduler-mern.onrender.com";
+import { API_BASE } from "../api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");

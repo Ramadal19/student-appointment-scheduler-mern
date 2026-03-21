@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import resetImg from "../assets/reset-bg.png";
-
-const API_BASE =
-  process.env.REACT_APP_API_URL ||
-  "https://student-appointment-scheduler-mern.onrender.com";
+import { API_BASE } from "../api";
 
 export default function ResetPassword() {
   const navigate = useNavigate();

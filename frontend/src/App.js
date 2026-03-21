@@ -7,8 +7,8 @@ import Register from "./pages/Register";
 import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
-import Schedule from "./pages/Schedule";
-import AdvisorAvailability from "./pages/AdvisorAvailability";
+//import Schedule from "./pages/Schedule";
+//import AdvisorAvailability from "./pages/AdvisorAvailability";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Support from "./pages/Support";
@@ -31,24 +31,6 @@ export default function App() {
         <Route path="/support" element={<Support />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
-
-        <Route
-          path="/schedule"
-          element={
-            <ProtectedRoute>
-              <Schedule />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/schedule/:advisorId"
-          element={
-            <ProtectedRoute>
-              <AdvisorAvailability />
-            </ProtectedRoute>
-          }
-        />
 
         <Route
           path="/dashboard"
