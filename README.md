@@ -1,261 +1,217 @@
-Student Appointment Scheduler (MERN)
+# 🎓 Student Appointment Scheduling System (MERN)
 
-A full-stack web application that allows students to schedule academic advising appointments with advisors. The system provides authentication, advisor availability management, and appointment booking through a modern MERN stack architecture.
+A full-stack web application that enables students to schedule academic advising appointments with advisors through a modern and secure MERN architecture.
 
-Overview
+---
+
+##  Overview
 
 The Student Appointment Scheduling System allows students to:
 
-Create accounts and log in securely
+- Create accounts and log in securely  
+- Authenticate via email/password or GitHub OAuth  
+- View advisor availability in real time  
+- Schedule and manage appointments  
+- Access a protected dashboard  
 
-View available advisors
+The application follows a **MERN architecture**:
 
-See advisor availability in real time
+- **MongoDB** – Database  
+- **Express.js** – Backend API  
+- **React.js** – Frontend interface  
+- **Node.js** – Runtime environment  
 
-Schedule appointments with advisors
+---
 
-Manage upcoming appointments
+## Features
 
-The application uses a MERN stack architecture:
+### Authentication
+- User registration
+- Email/password login
+- GitHub OAuth login
+- Session-based authentication (cookies)
+- Forgot password
+- Reset password (token-based)
 
-MongoDB – database
+---
 
-Express.js – backend API
+### Appointment System
+- View available advisors
+- Browse advisor availability
+- Select appointment topics
+- Add optional notes
+- Confirm appointments via modal
+- Delete appointments
 
-React.js – frontend interface
+---
 
-Node.js – runtime environment
+### Dashboard
+- Protected routes
+- User session validation
+- View upcoming appointments
+- Appointment status overview
 
-The system also supports session-based authentication and GitHub OAuth login.
+---
 
-Features
-Authentication
+### Security
+- Session validation via `/auth/me`
+- Protected frontend routes
+- Secure password reset tokens
+- HTTP-only cookies for authentication
 
-User registration
+---
 
-Email/password login
+## Tech Stack
 
-GitHub OAuth login
+### Frontend
+- React
+- React Router
+- CSS
+- Fetch API
+- Custom API client (`apiFetch`)
 
-Session-based authentication
+### Backend
+- Node.js
+- Express.js
+- MongoDB (Mongoose)
+- Passport.js (GitHub OAuth)
 
-Forgot password
+#Database
+- MongoDB Atlas
 
-Reset password
+---
 
-Student Dashboard
+# Project Structure
 
-View upcoming appointments
 
-Appointment status overview
-
-Search appointments
-
-Secure logout
-
-Appointment Scheduling
-
-View available advisors
-
-Check advisor availability
-
-Select appointment topic
-
-Add optional notes
-
-Request appointment
-
-Advisor Availability
-
-Advisors publish available time slots
-
-Students can only book unreserved slots
-
-Security
-
-Protected routes
-
-Session validation
-
-Secure password reset tokens
-
-Tech Stack
-Frontend
-
-React
-
-React Router
-
-CSS
-
-Fetch API
-
-Custom API client (apiFetch)
-
-Backend
-
-Node.js
-
-Express.js
-
-MongoDB
-
-Mongoose
-
-Passport.js
-
-GitHub OAuth
-
-Database
-
-MongoDB Atlas
-
-Project Structure
-student-appointment-scheduler-mern
+student-appointment-scheduler-mern/
 │
-├── backend
-│   ├── src
-│   │   ├── models
-│   │   ├── routes
-│   │   ├── config
-│   │   └── server.js
-│   │
-│   ├── scripts
-│   └── package.json
+├── backend/
+│ ├── src/
+│ │ ├── models/
+│ │ ├── routes/
+│ │ ├── config/
+│ │ └── server.js
+│ ├── package.json
+| └──README.md
 │
-├── frontend
-│   ├── src
-│   │   ├── components
-│   │   │   └── ProtectedRoute.jsx
-│   │   │
-│   │   ├── pages
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── Register.jsx
-│   │   │   ├── Schedule.jsx
-│   │   │   ├── AdvisorAvailability.jsx
-│   │   │   ├── ForgotPassword.jsx
-│   │   │   └── ResetPassword.jsx
-│   │   │
-│   │   ├── api.js
-│   │   ├── App.js
-│   │   └── index.js
-│   │
-│   └── package.json
+├── frontend/
+│ ├── src/
+│ │ ├── components/
+│ │ ├── pages/
+│ │ ├── hooks/
+│ │ ├── api.js
+│ │ ├── App.js
+│ │ └── index.js
+│ ├── package.json
+| └──README.md
 │
 └── README.md
-API Endpoints
-Authentication
-Method	Endpoint
-POST	/auth/register
-POST	/auth/login
-GET	/auth/me
-POST	/auth/logout
-POST	/auth/forgot-password
-POST	/auth/reset-password/:token
-GET	/auth/github
-Advisors
-Method	Endpoint
-GET	/api/advisors
-Availability
-Method	Endpoint
-GET	/api/availability?advisorId=
-Appointments
-Method	Endpoint
-GET	/api/appointments
-POST	/api/appointments
-Installation
-Clone the repository
+
+
+---
+
+## 🌐 API Endpoints
+
+### Authentication
+| Method | Endpoint                    |
+|--------|-----------------------------|
+| POST   | /auth/register              |
+| POST   | /auth/login                 |
+| GET    | /auth/me                    |
+| POST   | /auth/logout                |
+| POST   | /auth/forgot-password       |
+| POST   | /auth/reset-password/:token |
+| GET    | /auth/github                |
+
+### Advisors
+| Method | Endpoint      |
+|--------|---------------|
+| GET    | /api/advisors |
+
+### Availability
+| Method | Endpoint |
+|------|------------------------------|
+| GET  | /api/availability?advisorId= |
+
+### Appointments
+| Method | Endpoint          |
+|--------|---===========-----|
+| GET    | /api/appointments |
+| POST   | /api/appointments |
+| DELETE | /api/appointments/:id |
+
+---
+
+## Installation
+
+### 1. Clone the repository
+```bash
 git clone https://github.com/Ramadal19/student-appointment-scheduler-mern.git
 cd student-appointment-scheduler-mern
-Backend Setup
+
+2. Backend Setup
 cd backend
 npm install
 
-Create .env file:
+Create .env:
 
 PORT=5000
 MONGO_URI=your_mongodb_uri
 SESSION_SECRET=your_secret
+
 GITHUB_CLIENT_ID=your_client_id
 GITHUB_CLIENT_SECRET=your_secret
 
-Run the backend:
+CLIENT_URL=https://student-appointment-scheduler-mern.vercel.app/
+
+Run backend:
 
 npm run dev
-Frontend Setup
+
+3. Frontend Setup
 cd frontend
 npm install
 npm start
+
 Environment Variables
+Frontend (development only)
+REACT_APP_API_URL=https://student-appointment-scheduler-mern.vercel.app/
 
-Frontend:
+In production, this is configured in Vercel.
 
-REACT_APP_API_URL=http://localhost:5000
-
-Backend:
-
-PORT
-MONGO_URI
-SESSION_SECRET
-GITHUB_CLIENT_ID
-GITHUB_CLIENT_SECRET
-Authentication Flow
-
-User logs in with email/password or GitHub
-
+#  Authentication Flow
+User logs in (local or GitHub)
 Server creates a session
+Session cookie is stored in browser
+Frontend validates session via /auth/me
+Protected routes allow access to dashboard
 
-Session cookie is stored in the browser
+# Deployment
+Frontend: Vercel
+Backend: Render
+Database: MongoDB Atlas
 
-Protected routes validate session with /auth/me
-
-Logged-in users can access dashboard and schedule appointments
-
-Screens
-
-Main views included:
-
-Login page
-
-Register page
-
-Forgot password
-
-Reset password
-
-Student dashboard
-
-Advisor availability
-
-Schedule appointment
-
-Future Improvements
-
-Possible enhancements:
-
-Appointment cancellation
-
+# Future Improvements
 Advisor dashboard
-
 Email notifications
-
 Calendar integration
-
 Admin panel
-
-Real-time slot updates
-
+Real-time availability updates
 Pagination for appointments
 
-License
+# Author
 
-This project was created for academic and educational purposes.
+Danny Calderón
 
-Author
-
-Danny Calderon
 Candy Naveda
+
+Amazon Fulfillment Associate
+Software Development Student (CityU)
 City University of Seattle
 
 Hidden Gems Program – Amazon Career Choice
+
+License
+
+This project was created for academic and portfolio purposes.
