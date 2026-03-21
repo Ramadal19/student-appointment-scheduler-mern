@@ -38,7 +38,7 @@ const appointmentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Evita doble booking (mismo advisor, mismo startTime) si no está cancelada
+// Prevent duplicate bookings for the same advisor and start time unless canceled
 appointmentSchema.index(
   { advisorId: 1, startTime: 1, status: 1 },
   { unique: true, partialFilterExpression: { status: { $ne: "canceled" } } }

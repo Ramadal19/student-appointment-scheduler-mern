@@ -35,7 +35,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Render proxy (solo en producción para cookies secure)
+// Enable trust proxy only in production for secure cookies
 if (isProd) app.set("trust proxy", 1);
 
 // -------------------- MongoDB --------------------
@@ -62,12 +62,12 @@ app.use(
     secret: process.env.SESSION_SECRET || "dev_secret_change_me",
     resave: false,
     saveUninitialized: false,
-    proxy: isProd, // ✅ true solo en producción
+    proxy: isProd, // true only in production
     rolling: true,
     cookie: {
       httpOnly: true,
-      secure: isProd, // ✅ local: false (HTTP), prod: true (HTTPS)
-      sameSite: isProd ? "none" : "lax", // ✅ local: lax, prod: none (cross-site)
+      secure: isProd, // local: false (HTTP), prod: true (HTTPS)
+      sameSite: isProd ? "none" : "lax", // local: lax, prod: none (cross-site)
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
@@ -78,12 +78,12 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // -------------------- Routes --------------------
-app.use("/auth", authRoutes);
-app.use("/api/advisors", advisorRoutes);
-app.use("/api/appointments", appointmentRoutes);
-app.use("/api/availability", availabilityRoutes); // ✅ NUEVO
-app.use("/api/topics", topicRoutes);
-app.use("/api/users", userRoutes);
+app.use("/auth", authRoutes); //
+app.use("/api/advisors", advisorRoutes); // advisor routes
+app.use("/api/appointments", appointmentRoutes); // appointment routes
+app.use("/api/availability", availabilityRoutes); // availability routes
+app.use("/api/topics", topicRoutes); // topic routes
+app.use("/api/users", userRoutes); // (admin-only user management routes)
 app.get("/", (req, res) =>
   res.status(200).send("Backend server is running 🚀")
 );

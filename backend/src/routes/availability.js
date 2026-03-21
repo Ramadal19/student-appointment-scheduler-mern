@@ -1,8 +1,20 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const Availability = require("../models/Availability");
+const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
+
+function getNextMonday(base = new Date()) {
+  const d = new Date(base);
+  d.setHours(0, 0, 0, 0);
+
+  const day = d.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const diff = (8 - day) % 7;
+
+  d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+  return d;
+}
 
 // GET /api/availability?advisorId=...&from=...&to=...
 router.get("/", async (req, res) => {
@@ -60,7 +72,7 @@ router.get("/table/:advisorId", async (req, res) => {
 });
 
 // POST /api/availability/seed
-router.post("/seed", async (req, res) => {
+router.post("/seed", requireAuth, requireRole("admin"), async (req, res) => {
   try {
     const { advisorId } = req.body;
 
@@ -68,13 +80,33 @@ router.post("/seed", async (req, res) => {
       return res.status(400).json({ error: "advisorId is required" });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(advisorId)) {
+      return res.status(400).json({ error: "Invalid advisorId" });
+    }
+
     const advisorObjectId = new mongoose.Types.ObjectId(advisorId);
+    const startDate = getNextMonday();
 
-    // Semana: Monday 2026-03-23 hasta Friday 2026-03-27
-    // Mes en JS: marzo = 2
-    const startDate = new Date(2026, 2, 23);
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 5);
 
-    // Horarios exactos requeridos:
+    const existingSlots = await Availability.countDocuments({
+      advisorId: advisorObjectId,
+      startTime: {
+        $gte: startDate,
+        $lt: endDate,
+      },
+    });
+
+    if (existingSlots > 0) {
+      return res.status(409).json({
+        error: "Availability already exists for the upcoming week.",
+        weekStartsOn: startDate,
+        existingSlots,
+      });
+    }
+
+    // Required time slots:
     // 8-9, 9-10, 10-11, 11-12, 1-2, 2-3, 3-4, 4-5
     const HOURS = [8, 9, 10, 11, 13, 14, 15, 16];
 
@@ -105,8 +137,16 @@ router.post("/seed", async (req, res) => {
     res.status(201).json({
       message: "Availability created",
       count: result.length,
+      weekStartsOn: startDate,
+      weekEndsBefore: endDate,
     });
   } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({
+        error: "Some availability slots already exist for the upcoming week.",
+      });
+    }
+
     res.status(500).json({ error: err.message });
   }
 });

@@ -1,5 +1,5 @@
 const express = require("express");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcrypt");
 const User = require("../models/User");
 const { requireAuth } = require("../middleware/auth");
 
@@ -41,10 +41,7 @@ router.patch("/change-password", requireAuth, async (req, res) => {
       });
     }
 
-    const isMatch = await bcrypt.compare(
-      currentPassword,
-      user.passwordHash
-    );
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
 
     if (!isMatch) {
       return res.status(400).json({

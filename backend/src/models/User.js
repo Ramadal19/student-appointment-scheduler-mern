@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
 
     profileComplete: { type: Boolean, default: false },
 
-    // ✅ NUEVOS CAMPOS PARA RESET PASSWORD
+    // Password reset fields
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
   },

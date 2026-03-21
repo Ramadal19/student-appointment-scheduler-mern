@@ -6,21 +6,41 @@ import {
   getTimeLabel,
 } from "../utils/appointmentHelpers";
 
-const API_BASE =
-  process.env.REACT_APP_API_URL ||
-  "http://localhost:5000";
+import { API_BASE } from "../api";
 
 const FIXED_TIME_ROWS = [
   "08:00 AM - 09:00 AM",
   "09:00 AM - 10:00 AM",
   "10:00 AM - 11:00 AM",
   "11:00 AM - 12:00 PM",
-//  "12:00 PM - 01:00 PM",
   "01:00 PM - 02:00 PM",
   "02:00 PM - 03:00 PM",
   "03:00 PM - 04:00 PM",
   "04:00 PM - 05:00 PM",
 ];
+
+function getNextMonday(base = new Date()) {
+  const d = new Date(base);
+  d.setHours(0, 0, 0, 0);
+
+  const day = d.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const diff = (8 - day) % 7;
+
+  d.setDate(d.getDate() + (diff === 0 ? 7 : diff));
+  return d;
+}
+
+function getUpcomingWeekRange() {
+  const start = getNextMonday();
+  const end = new Date(start);
+  end.setDate(start.getDate() + 4);
+  end.setHours(23, 59, 59, 999);
+
+  return {
+    weekFrom: start.toISOString(),
+    weekTo: end.toISOString(),
+  };
+}
 
 export default function useRequestAppointment(onAppointmentCreated) {
   const [advisors, setAdvisors] = useState([]);
@@ -130,8 +150,7 @@ export default function useRequestAppointment(onAppointmentCreated) {
         setConfirmVisible(false);
         setAppointmentPreview(null);
 
-        const weekFrom = "2026-03-23T00:00:00.000Z";
-        const weekTo = "2026-03-27T23:59:59.999Z";
+        const { weekFrom, weekTo } = getUpcomingWeekRange();
 
         const res = await fetch(
           `${API_BASE}/api/availability?advisorId=${selectedAdvisor}&from=${encodeURIComponent(
@@ -257,6 +276,7 @@ export default function useRequestAppointment(onAppointmentCreated) {
       }
 
       setConfirmVisible(false);
+      setSuccess("Appointment created successfully.");
 
       if (onAppointmentCreated) {
         await onAppointmentCreated();

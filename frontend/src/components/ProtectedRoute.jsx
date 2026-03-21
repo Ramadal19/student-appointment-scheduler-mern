@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-
-const API_BASE =
-  process.env.REACT_APP_API_URL ||
-  "https://student-appointment-scheduler-mern.onrender.com";
+import { apiFetch } from "../api";
 
 export default function ProtectedRoute({ children }) {
   const [checking, setChecking] = useState(true);
@@ -14,13 +11,9 @@ export default function ProtectedRoute({ children }) {
 
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/auth/me`, {
-          credentials: "include",
-        });
-
-        const data = await res.json().catch(() => ({}));
+        const data = await apiFetch("/auth/me");
         const ok =
-          res.ok && (data.loggedIn === true || data.authenticated === true);
+          data.loggedIn === true || data.authenticated === true;
 
         if (alive) setAllowed(ok);
       } catch (e) {

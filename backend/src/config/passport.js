@@ -4,12 +4,12 @@ const GitHubStrategy = require("passport-github2").Strategy;
 const User = require("../models/User");
 
 // -------------------- Session serialize/deserialize --------------------
-// Guardamos solo el ID en la sesión (recomendado)
+// Store only the user ID in the session (recommended)
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-// Reconstruye req.user desde Mongo
+// Rebuild req.user from MongoDB using the ID stored in the session
 passport.deserializeUser(async (id, done) => {
   try {
     const user = await User.findById(id).select("-passwordHash");

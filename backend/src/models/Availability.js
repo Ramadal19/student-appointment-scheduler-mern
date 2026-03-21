@@ -15,7 +15,7 @@ const availabilitySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Evita duplicados del mismo slot para el mismo advisor
+// Prevent duplicate availability slots for the same advisor
 availabilitySchema.index({ advisorId: 1, startTime: 1 }, { unique: true });
 
 module.exports = mongoose.model("Availability", availabilitySchema);

@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import registerImg from "../assets/reg-bg.png";
-
-const API_BASE =
-  process.env.REACT_APP_API_URL ||
-  "https://student-appointment-scheduler-mern.onrender.com";
+import { API_BASE } from "../api";
 
 export default function Register() {
   const navigate = useNavigate();

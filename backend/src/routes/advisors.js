@@ -3,7 +3,7 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-// GET /advisors  -> lista advisors
+// GET /advisors  -> list all advisors (id, name, email)
 router.get("/", async (req, res) => {
   try {
     const advisors = await User.find({ role: "advisor" })

@@ -5,10 +5,7 @@ import DeleteAppointmentModal from "../components/appointments/DeleteAppointment
 import RequestAppointment from "./RequestAppointment";
 import "../styles/Dashboard.css";
 import Settings from "../pages/Settings";
-
-const API_BASE =
-  process.env.REACT_APP_API_URL ||
-  "http://localhost:5000";
+import { API_BASE, apiFetch } from "../api";
 
 function formatDateRange(start, end) {
   if (!start) return "No date";
@@ -117,14 +114,15 @@ export default function Dashboard() {
   const [appointmentToDelete, setAppointmentToDelete] = useState(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/auth/me`, { credentials: "include" })
-      .then(async (res) => {
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error("Not logged in");
-        return data;
-      })
-      .then((data) => {
+   let alive = true;
+
+    (async () => {
+      try {
+        const data = await apiFetch("/auth/me");
         const u = data.user || data.currentUser || null;
+
+        if (!alive) return;
+
         setUser(u);
         setSessionOk(true);
 
@@ -137,26 +135,26 @@ export default function Dashboard() {
           : "Unknown";
 
         setStatus(`✅ Welcome, ${label}`);
-      })
-      .catch(() => {
+      } catch (err) {
+        if (!alive) return;
+
         setUser(null);
         setSessionOk(false);
         setStatus("❌ Not logged in");
         navigate("/login", { replace: true });
-      });
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
   }, [navigate]);
 
   const loadAppointments = async () => {
     try {
       setLoadingAppointments(true);
 
-      const res = await fetch(`${API_BASE}/api/appointments/my`, {
-        credentials: "include",
-      });
-
-      if (!res.ok) throw new Error("Failed to load appointments");
-
-      const data = await res.json();
+      const data = await apiFetch("/api/appointments/my");
       setAppointments(Array.isArray(data) ? data : []);
     } catch (err) {
       setAppointments([]);
@@ -285,17 +283,17 @@ export default function Dashboard() {
 
   const onLogout = async () => {
     try {
-      await fetch(`${API_BASE}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
+      await apiFetch("/auth/logout", {
+       method: "POST",
       });
     } catch (e) {
-      // aunque falle logout remoto, igual limpiamos UI
+      // Even if remote logout fails, still clear the local UI state
     } finally {
       setUser(null);
       setAppointments([]);
       setSessionOk(false);
-      navigate("/login", { replace: true });
+      setStatus("Logged out");
+      navigate("/", { replace: true });
     }
   };
 

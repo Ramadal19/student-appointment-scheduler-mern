@@ -9,7 +9,7 @@ const router = express.Router();
 
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// Populate completo para React
+// Full populate configuration for React
 const appointmentPopulate = [
   { path: "advisorId", select: "name email role" },
   { path: "studentId", select: "name email role profileComplete" },
@@ -80,7 +80,7 @@ router.get("/my", requireAuth, async (req, res) => {
 
 /**
  * GET /appointments/student/:studentId
- * Mantener temporalmente, pero solo admin
+ * Keep temporarily, but restrict access to admin only
  */
 router.get("/student/:studentId", requireAuth, requireRole("admin"), async (req, res) => {
   try {
@@ -102,7 +102,7 @@ router.get("/student/:studentId", requireAuth, requireRole("admin"), async (req,
 /**
  * POST /appointments
  * Body: { advisorId, topicId, availabilityId, notes? }
- * studentId sale de req.user._id
+ * studentId comes from req.user._id
  */
 router.post("/", requireAuth, requireRole("student"), async (req, res) => {
   const { advisorId, topicId, availabilityId, notes } = req.body;
@@ -142,7 +142,7 @@ router.post("/", requireAuth, requireRole("student"), async (req, res) => {
       const existingStudentAppointment = await Appointment.findOne({
         studentId,
         startTime: slotCheck.startTime,
-        status: { $in: ["confirmed", "requested"] },
+        status: { $in: ["confirmed"] },
       }).session(session);
 
       if (existingStudentAppointment) {
@@ -226,7 +226,7 @@ router.post("/", requireAuth, requireRole("student"), async (req, res) => {
 
 /**
  * PATCH /appointments/:id/cancel
- * Student dueño, advisor relacionado o admin
+ * Allowed roles: appointment owner, related advisor, or admin
  */
 router.patch("/:id/cancel", requireAuth, async (req, res) => {
   const { id } = req.params;
@@ -256,7 +256,7 @@ router.patch("/:id/cancel", requireAuth, async (req, res) => {
         return;
       }
 
-      const shouldRelease = appt.status === "confirmed" || appt.status === "requested";
+      const shouldRelease = appt.status === "confirmed";
 
       appt.status = "canceled";
       await appt.save({ session });
@@ -290,7 +290,7 @@ router.patch("/:id/cancel", requireAuth, async (req, res) => {
 });
 /**
  * DELETE /appointments/:id
- * Student, advisor 
+ * Allowed roles: appointment owner, related advisor, or admin
  */
 router.delete("/:id", requireAuth, async (req, res) => {
   const { id } = req.params;
@@ -317,8 +317,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
       }
 
       const shouldRelease =
-        appt.status === "confirmed" ||
-        appt.status === "requested";
+        appt.status === "confirmed";
 
       if (shouldRelease && appt.availabilityId) {
         await Availability.updateOne(

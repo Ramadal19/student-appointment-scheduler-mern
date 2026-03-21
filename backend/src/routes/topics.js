@@ -1,5 +1,5 @@
 const express = require("express");
-const Topic = require("../models/Topics"); // cambia a ../models/Topic si tu archivo se llama Topic.js
+const Topic = require("../models/Topics"); 
 
 const router = express.Router();
 
